@@ -1,0 +1,57 @@
+# Swap files
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+
+# Session files
+*.session
+Session.vim
+
+# Undo files
+.undo/
+*.un~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swc
+*.spc
+
+# Build/temp
+build/
+dist/
+*.o
+*.so
+
+# Node (if using build tools)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+
+# Test coverage
+coverage/
+.coverage
+
+# Logs
+*.log
+logs/
+
+# Local config
+local.vim
+.local/
