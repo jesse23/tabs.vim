@@ -1,3 +1,7 @@
+# Agent/Claude local
+.agents/
+.claude/
+
 # Swap files
 *.swp
 *.swo
