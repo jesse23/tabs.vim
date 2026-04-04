@@ -243,6 +243,30 @@ endfunction
 
 set tabline=%!TabsVim_Line()
 
+" Refresh tabline on mode change and cursor movement
+augroup TabsVimRefresh
+  autocmd!
+  autocmd InsertEnter,InsertLeave,CursorMoved,CursorMovedI,WinEnter * redrawtabline
+augroup END
+if exists('##ModeChanged')
+  augroup TabsVimRefresh
+    autocmd ModeChanged * redrawtabline
+  augroup END
+endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Direct Tab Jump: <leader>[1-9] to jump to tab N
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+nnoremap <silent> <leader>1  :1tabnext<CR>
+nnoremap <silent> <leader>2  :2tabnext<CR>
+nnoremap <silent> <leader>3  :3tabnext<CR>
+nnoremap <silent> <leader>4  :4tabnext<CR>
+nnoremap <silent> <leader>5  :5tabnext<CR>
+nnoremap <silent> <leader>6  :6tabnext<CR>
+nnoremap <silent> <leader>7  :7tabnext<CR>
+nnoremap <silent> <leader>8  :8tabnext<CR>
+nnoremap <silent> <leader>9  :9tabnext<CR>
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " FZF Integration: Open files in tabs
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
