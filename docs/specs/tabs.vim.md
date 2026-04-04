@@ -257,7 +257,7 @@ let g:tabs_vim_colors = {
 
 ## Related Specs
 
-None yet.
+- [key-binding.md](key-binding.md) — public `TabsVim_*` function API, OOTB behavior contract, and recommended vimrc wiring
 
 ---
 

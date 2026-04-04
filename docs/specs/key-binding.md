@@ -16,9 +16,9 @@ The plugin intentionally keeps OOTB bindings minimal to avoid conflicts with use
 
 ## OOTB Behavior
 
-The plugin installs **no keybindings** by default. Tab navigation is already covered by Vim natively (`gt` / `gT` / `<count>gt`).
+The plugin installs **no user-facing keybindings** by default. Tab navigation is already covered by Vim natively (`gt` / `gT` / `<count>gt`).
 
-The one OOTB behavior is **mouse drag-and-drop file opening**: dropping a file from a file manager into the terminal opens it in a new tab. This is implemented via bracketed-paste terminal sequences (`t_BE`/`t_BD`) and synthetic key aliases (`<F30>`/`<F31>`), which require infrastructure the user cannot set up from a plain vimrc mapping. It activates only in terminal Vim (not GVim) on Vim 8.0.0210+.
+The one OOTB behavior is **mouse drag-and-drop file opening**: dropping a file from a file manager into the terminal opens it in a new tab. This is implemented via bracketed-paste terminal sequences (`t_BE`/`t_BD`) and internal synthetic key aliases (`<F30>`/`<F31>`) — these are not user-facing mappings. It activates only in terminal Vim (not GVim) on Vim 8.0.0210+.
 
 ---
 
@@ -124,6 +124,6 @@ In normal mode, `<C-]>` is the native "jump to tag under cursor" (ctags / cscope
 
 | Feature | Description | ADR | Done? |
 |---------|-------------|-----|-------|
-| **No OOTB keybindings** | Plugin installs zero keymaps; mouse DnD infrastructure only | ADR-004 | ⬜ |
-| **Public function API** | All operations promoted to `TabsVim_*` public functions | ADR-004 | ⬜ |
-| **Example vimrc block** | Ready-made mapping block for users to copy into vimrc | — | ⬜ |
+| **No OOTB keybindings** | Plugin installs zero keymaps; mouse DnD infrastructure only | ADR-004 | ✅ |
+| **Public function API** | All operations promoted to `TabsVim_*` public functions | ADR-004 | ✅ |
+| **Example vimrc block** | Ready-made mapping block for users to copy into vimrc | — | ✅ |

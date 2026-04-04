@@ -70,9 +70,9 @@ endfunction
 " WINDOWS & BUFFERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" Close window or terminal, with prompt to quit if it's the last window
+" Close window or terminal, with prompt to quit if it's the last window in the last tab
 function! TabsVim_CloseOrHide() abort
-  if winnr('$') == 1
+  if tabpagenr('$') == 1 && winnr('$') == 1
     if confirm('Quit Vim?', "&Yes\n&No", 2) == 1
       qall!
     endif
@@ -82,8 +82,10 @@ function! TabsVim_CloseOrHide() abort
   if &buftype ==# 'terminal'
     if bufnr('%') == s:vterm_bufnr
       call s:ToggleTerm('s:vterm_bufnr', 'vertical', 'vertical resize 80')
-    else
+    elseif bufnr('%') == s:term_bufnr
       call s:ToggleTerm('s:term_bufnr', 'below', 'resize 15')
+    else
+      close
     endif
   else
     close
@@ -103,6 +105,12 @@ endfunction
 " FZF Integration: Open files in tabs
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 function! TabsVim_FzfOpenInTab() abort
+  if !exists('*fzf#vim#files') || !exists('*fzf#vim#with_preview')
+    echohl WarningMsg
+    echo 'tabs.vim: TabsVim_FzfOpenInTab requires fzf.vim (fzf#vim#files not available)'
+    echohl None
+    return
+  endif
   call fzf#vim#files('', fzf#vim#with_preview({'sink': 'tabedit'}), 0)
 endfunction
 
