@@ -58,6 +58,24 @@ The phrase "open a file" has fundamentally different meanings in modern editors 
 
 This semantic difference is why new Vim users are confused. They try to "open a file in a tab" but Vim's default behavior is to open a buffer (which may or may not be in a tab, which may or may not be visible).
 
+### Split Window Misconception
+
+The confusion deepens when users try split windows. Modern editors and Vim have opposite mental models:
+
+| Action | Modern Editor | Vim | Misconception |
+|--------|---|---|---|
+| **"Split window to view file side-by-side"** | Split creates a **second tab area** in the same editor; file opens in new area | `:split` or `:vsplit` **adds a new window in current tab**; both windows show the same or different buffers | Users think split opens a new independent view; it doesn't—both panes stay in the same tab |
+| **Scope of split** | Split is **global** (visible in all tabs) | Split is **tab-scoped** (each tab has independent window layout) | New Vim users expect splits to be "sticky"—if they split in tab A, they expect tab B to remember the split too |
+| **Close file in split** | Close a split pane, file remains in other panes or tab bar | `:q` closes the window; buffer persists (can `:b` back to it) | Users try to close a split and expect the file to disappear entirely; it doesn't |
+
+**Example of the Confusion:**
+- User opens `file1.txt`, wants to see `file2.txt` alongside it
+- Modern editor thinking: "Open in split" → file2 appears in new pane
+- Vim reality: `:vsplit` + `:e file2.txt` → two windows in same tab showing both files
+- User then opens a new tab (thinking they're working on a new context)
+- **Surprise**: The split layout in the first tab doesn't carry over—new tab has single window
+- **Result**: Users feel like Vim splits are "temporary" or "tied to a context" when they're actually window layout within a tab
+
 ### Why This Matters
 
 This hierarchy works *against* modern editor intuitions:
