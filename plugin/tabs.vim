@@ -178,12 +178,15 @@ endif
 " MODE COLORS — override any mode via g:tabs_vim_colors (see docs/specs/tabs.vim.md)
 " Each entry: [guifg, guibg, ctermfg, ctermbg]
 let s:tabs_vim_defaults = {
-  \ 'normal':   ['#282a36', '#bd93f9', 235, 141],
-  \ 'insert':   ['#282a36', '#50fa7b', 235, 84 ],
-  \ 'visual':   ['#282a36', '#ffb86c', 235, 215],
-  \ 'replace':  ['#282a36', '#ff5555', 235, 203],
-  \ 'command':  ['#282a36', '#bd93f9', 235, 141],
-  \ 'terminal': ['#282a36', '#8be9fd', 235, 117],
+  \ 'normal':       ['#282a36', '#bd93f9', 235, 141],
+  \ 'insert':       ['#282a36', '#50fa7b', 235, 84 ],
+  \ 'visual':       ['#282a36', '#ffb86c', 235, 215],
+  \ 'replace':      ['#282a36', '#ff5555', 235, 203],
+  \ 'command':      ['#282a36', '#bd93f9', 235, 141],
+  \ 'terminal':     ['#282a36', '#8be9fd', 235, 117],
+  \ 'tabline':      ['#6272a4', 'NONE',    61,  'NONE'],
+  \ 'tabline_sel':  ['#bd93f9', 'NONE',    141, 'NONE'],
+  \ 'tabline_fill': ['#6272a4', 'NONE',    61,  'NONE'],
 \ }
 
 function! s:ApplyColors() abort
@@ -201,6 +204,15 @@ function! s:ApplyColors() abort
   let l:n  = (type(l:ov) == type([]) && len(l:ov) == 4) ? l:ov : s:tabs_vim_defaults['normal']
   execute printf('hi TabsVim_Accent guifg=%s guibg=%s ctermfg=%s ctermbg=%s gui=bold cterm=bold',
         \ l:n[0], l:n[1], l:n[2], l:n[3])
+  for [l:key, l:Group, l:bold] in [
+        \ ['tabline',      'TabLine',     'NONE'],
+        \ ['tabline_sel',  'TabLineSel',  'bold'],
+        \ ['tabline_fill', 'TabLineFill', 'NONE']]
+    let l:ov  = get(l:user, l:key, [])
+    let l:col = (type(l:ov) == type([]) && len(l:ov) == 4) ? l:ov : s:tabs_vim_defaults[l:key]
+    execute printf('hi %s guifg=%s guibg=%s ctermfg=%s ctermbg=%s gui=%s cterm=%s',
+          \ l:Group, l:col[0], l:col[1], l:col[2], l:col[3], l:bold, l:bold)
+  endfor
 endfunction
 
 call s:ApplyColors()
