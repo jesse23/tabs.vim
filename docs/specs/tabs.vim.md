@@ -106,28 +106,30 @@ This is why `tabs.vim` supporting terminal operations (opening terminal in new t
 
 ## Architecture
 
-### Module Structure
+### File Structure
 
 ```
 tabs.vim/
-├── plugin/tabs.vim          # Entry point, settings initialization
-├── autoload/tabs.vim        # Core functions (navigation, creation, events)
-├── autoload/tabs/nav.vim    # Navigation commands
-├── autoload/tabs/create.vim # Tab creation patterns
-├── autoload/tabs/ui.vim     # Visual customizations (colors, statusline)
+├── plugin/tabs.vim          # Complete plugin implementation (~300 lines)
+├── autoload/                # (reserved for future modularization)
 └── README.md                # User documentation
 ```
+
+**Single-file design**: All tab navigation, creation, terminal handling, and theming logic lives in `plugin/tabs.vim`. This keeps the plugin lightweight and easy to understand while remaining maintainable.
 
 ### Design Patterns
 
 **1. Stateless Commands**  
-All tab operations are pure Vim commands; no plugin state is maintained. Tab state is delegated to Vim's native tab list.
+All tab operations are pure Vim commands; no plugin state is maintained. Tab state is delegated to Vim's native tab list. Terminal buffer state is tracked minimally via module-level variables (`s:term_bufnr`, `s:vterm_bufnr`).
 
 **2. Plugin Composition**  
-Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimplement file picking or git operations — it just routes output to tabs.
+Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimplement file picking or git operations — it just routes output to tabs via `:tabedit`.
 
 **3. Configuration Flexibility**  
 All keybindings are configurable. Users can disable features (e.g., if they don't use tabs) without source code changes.
+
+**4. Integrated Theming**  
+Dracula color scheme integration built-in; tab bar includes mode indicator (Normal/Insert/Visual/Replace/Command/Terminal) with context-aware highlighting.
 
 ---
 

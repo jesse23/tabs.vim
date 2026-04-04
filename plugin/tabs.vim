@@ -4,15 +4,247 @@ endif
 let g:tabs_vim_loaded = 1
 
 " Plugin: tabs.vim
-" Description: Manage tabs efficiently
+" Description: Efficient tab management with modern editor UX
 " Version: 0.1.0
+" Principles: Locality, Discoverability, Speed, Integration
 
-" Default settings
-let g:tabs_debug = get(g:, 'tabs_debug', 0)
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Terminal State (for split terminal toggle)
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let s:term_bufnr  = -1
+let s:vterm_bufnr = -1
 
-" Load main plugin functions
-source <sfile>:h/autoload/tabs.vim
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" TERMINAL: Split terminals & new tab terminal
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-if g:tabs_debug
-  echom 'tabs.vim loaded'
+" Toggle split terminal: below/horizontal (<leader>h, <leader>ts)
+" or vertical (<leader>tv)
+function! s:ToggleTerm(bufvar, open_cmd, resize_cmd) abort
+  let bufnr = eval(a:bufvar)
+  for w in range(1, winnr('$'))
+    if winbufnr(w) == bufnr
+      execute w . 'wincmd w' | hide | return
+    endif
+  endfor
+  if bufnr > 0 && bufexists(bufnr)
+    execute a:open_cmd . ' sbuffer ' . bufnr
+    execute a:resize_cmd | return
+  endif
+  execute a:open_cmd . ' term'
+  execute 'let ' . a:bufvar . ' = bufnr("")'
+  setlocal nobuflisted
+  execute a:resize_cmd
+endfunction
+
+nnoremap <silent> <leader>h  :call <SID>ToggleTerm('s:term_bufnr',  'below',    'resize 15')<CR>
+nnoremap <silent> <leader>ts :call <SID>ToggleTerm('s:term_bufnr',  'below',    'resize 15')<CR>
+nnoremap <silent> <leader>tv :call <SID>ToggleTerm('s:vterm_bufnr', 'vertical', 'vertical resize 80')<CR>
+
+" New tab terminal (<leader>tt)
+function! s:NewTabTerm() abort
+  tab term
+  setlocal nobuflisted
+endfunction
+nnoremap <silent> <leader>tt :call <SID>NewTabTerm()<CR>
+
+" Terminal mode mappings
+tnoremap <Esc>  <Esc>
+tnoremap <C-]>  <C-\><C-n>
+nnoremap <C-]>  i
+inoremap <C-]>  <Esc>
+
+" Terminal settings
+augroup TermSettings
+  autocmd!
+  " No line numbers in terminal windows
+  autocmd TerminalOpen,BufEnter,WinEnter * if &buftype ==# 'terminal' | setlocal nonumber norelativenumber | endif
+  " Resize terminal buffers when vim window size changes
+  autocmd VimResized * call s:ResizeTerminals()
+  " Keep newly opened terminals in the current working directory
+  autocmd TerminalOpen * call term_sendkeys(bufnr(''), 'cd ' . shellescape(getcwd()) . "\n")
+augroup END
+
+function! s:ResizeTerminals() abort
+  for buf in term_list()
+    let w = bufwinnr(buf)
+    if w > 0 | call term_setsize(buf, winheight(w), winwidth(w)) | endif
+  endfor
+endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" WINDOWS & BUFFERS: Tab navigation, creation, closing
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Tab navigation: <Tab> next, <S-Tab> prev
+nnoremap <silent> <Tab>      :tabnext<CR>
+nnoremap <silent> <S-Tab>    :tabprev<CR>
+
+" Window/split operations
+nnoremap <silent> <leader>ws :sp<CR>
+nnoremap <silent> <leader>wv :vsp<CR>
+nnoremap <silent> <leader>wm :only<CR>
+
+" Buffer operations
+nnoremap <silent> <leader>wr :call <SID>RenameBuffer()<CR>
+nnoremap <silent> <leader>wb :Buffers<CR>
+
+" Tab operations
+nnoremap <silent> <leader>wt :tabnew<CR>
+nnoremap <silent> <leader>x  :call <SID>CloseOrHideSplit()<CR>
+nnoremap <silent> <leader>X  :tabonly<CR>
+
+" Close window or terminal, with prompt to quit if it's the last window
+function! s:CloseOrHideSplit() abort
+  if winnr('$') == 1
+    if confirm('Quit Vim?', "&Yes\n&No", 2) == 1
+      qall!
+    endif
+    return
+  endif
+
+  if &buftype ==# 'terminal'
+    if bufnr('%') == s:vterm_bufnr
+      call s:ToggleTerm('s:vterm_bufnr', 'vertical', 'vertical resize 80')
+    else
+      call s:ToggleTerm('s:term_bufnr', 'below', 'resize 15')
+    endif
+  else
+    close
+  endif
+endfunction
+
+" Rename current buffer
+function! s:RenameBuffer() abort
+  let l:new_name = input('Rename buffer: ', expand('%:t'))
+  if empty(l:new_name)
+    return
+  endif
+  execute 'file ' . fnameescape(l:new_name)
+endfunction
+
+" Copy file path to clipboard
+nnoremap <silent> <leader>fy :let @+ = expand("%:p")<CR>
+
+" gF: open file-under-cursor in a new tab (extends built-in gf)
+nnoremap <silent> gF :tabedit <cfile><CR>
+
+" <leader>r: redo
+nnoremap <silent> <leader>r  <Cmd>redo<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" DRAG-AND-DROP: Drop a file path onto the terminal → open in new tab
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Requires bracketed-paste support in the terminal (iTerm2, xterm, etc.)
+" Drag a file from Finder/Explorer → terminal sends ESC[200~path ESC[201~
+if has('patch-8.0.0210') && !has('gui_running')
+  let &t_BE = "\e[?2004h"   " enable bracketed paste on Vim entry
+  let &t_BD = "\e[?2004l"   " disable on Vim exit
+  exec "set <F30>=\e[200~"
+  exec "set <F31>=\e[201~"
+
+  " Normal mode: intercept bracket-paste start, collect path, open in new tab
+  nnoremap <F30> <Cmd>call <SID>HandleFileDrop()<CR>
+
+  " Insert mode: swallow paste markers
+  inoremap <F30> <nop>
+  inoremap <F31> <nop>
+
+  " Command mode: silently swallow the markers so pasted text is clean
+  cnoremap <F30> <nop>
+  cnoremap <F31> <nop>
+
+  function! s:HandleFileDrop() abort
+    let text = ''
+    while 1
+      let c = getchar()
+      if type(c) == type('') | break | endif
+      let text ..= nr2char(c)
+    endwhile
+    let path = trim(text)
+    if filereadable(path) || isdirectory(path)
+      execute 'tabedit ' .. fnameescape(path)
+    else
+      echohl WarningMsg | echo 'Not a file: ' .. path | echohl None
+    endif
+  endfunction
 endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" THEMING: Tab bar with mode indicator (Normal/Insert/Visual/Replace/Command)
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" ── Highlight groups ───────────────────────────────────────────────────────
+" MODE COLORS — edit guibg to restyle each mode pill (fg is always dark #282a36)
+hi TabsVim_Normal   guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
+hi TabsVim_Insert   guifg=#282a36 guibg=#50fa7b ctermfg=235 ctermbg=84  gui=bold cterm=bold
+hi TabsVim_Visual   guifg=#282a36 guibg=#ffb86c ctermfg=235 ctermbg=215 gui=bold cterm=bold
+hi TabsVim_Replace  guifg=#282a36 guibg=#ff5555 ctermfg=235 ctermbg=203 gui=bold cterm=bold
+hi TabsVim_Command  guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
+hi TabsVim_Terminal guifg=#282a36 guibg=#8be9fd ctermfg=235 ctermbg=117 gui=bold cterm=bold
+" Active tab text — same hue as mode pill, no background
+hi TabsVim_SelNormal   guifg=#bd93f9 guibg=NONE ctermbg=NONE ctermfg=141 gui=bold cterm=bold
+hi TabsVim_SelInsert   guifg=#50fa7b guibg=NONE ctermbg=NONE ctermfg=84  gui=bold cterm=bold
+hi TabsVim_SelVisual   guifg=#ffb86c guibg=NONE ctermbg=NONE ctermfg=215 gui=bold cterm=bold
+hi TabsVim_SelReplace  guifg=#ff5555 guibg=NONE ctermbg=NONE ctermfg=203 gui=bold cterm=bold
+hi TabsVim_SelCommand  guifg=#bd93f9 guibg=NONE ctermbg=NONE ctermfg=141 gui=bold cterm=bold
+hi TabsVim_SelTerminal guifg=#8be9fd guibg=NONE ctermbg=NONE ctermfg=117 gui=bold cterm=bold
+
+set showtabline=2
+
+" Get current mode name
+function! TabsVim_ModeName() abort
+  let l:map = {
+    \ 'n':    'N',  'no':   'N·OP',
+    \ 'i':    'I',  'ic':   'I·COMP',  'ix': 'I·X',
+    \ 'R':    'R', 'Rc':   'R·COMP',
+    \ 'v':    'V',  'V':    'V·LINE',  "\<C-v>": 'V·BLOCK',
+    \ 's':    'S',  'S':    'S·LINE',  "\<C-s>": 'S·BLOCK',
+    \ 'c':    'C', 't':    'T'
+  \ }
+  return get(l:map, mode(), mode())
+endfunction
+
+" Get mode highlight groups
+function! TabsVim_ModeHl() abort
+  let l:m = mode()
+  if     l:m =~# '^[vV\x16]' | return ['%#TabsVim_Visual#',   '%#TabsVim_SelVisual#']
+  elseif l:m =~# '^[iI]'     | return ['%#TabsVim_Insert#',   '%#TabsVim_SelInsert#']
+  elseif l:m =~# '^[rR]'     | return ['%#TabsVim_Replace#',  '%#TabsVim_SelReplace#']
+  elseif l:m =~# '^c'        | return ['%#TabsVim_Command#',  '%#TabsVim_SelCommand#']
+  elseif l:m =~# '^t'        | return ['%#TabsVim_Terminal#', '%#TabsVim_SelTerminal#']
+  else                        | return ['%#TabsVim_Normal#',   '%#TabsVim_SelNormal#']
+  endif
+endfunction
+
+" Build tab line with tabs (left) and mode indicator (right)
+function! TabsVim_Line() abort
+  let l:hls = TabsVim_ModeHl()   " [pill_hl, sel_tab_hl]
+  let s = ''
+  
+  " ── Tabs (left) ────────────────────────────────────────────────────────
+  for t in range(1, tabpagenr('$'))
+    let buflist = tabpagebuflist(t)
+    let buf     = buflist[tabpagewinnr(t) - 1]
+    let name    = bufname(buf)
+    let name    = empty(name) ? '[No Name]' : fnamemodify(name, ':t')
+    let mod     = getbufvar(buf, '&modified') ? ' *' : ''
+    let s .= t == tabpagenr() ? l:hls[1] : '%#TabLine#'
+    let s .= '%' . t . 'T'
+    let s .= ' ' . t . ' ' . name . mod . ' '
+    if t < tabpagenr('$') | let s .= '%#TabLineFill#│' | endif
+  endfor
+
+  " ── Mode block (right) ─────────────────────────────────────────────────
+  let s .= '%T%=' . l:hls[0] . ' ' . TabsVim_ModeName() . ' '
+
+  return s
+endfunction
+
+set tabline=%!TabsVim_Line()
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" FZF Integration: Open files in tabs
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" <leader>ft: Open file in tab via fzf
+nnoremap <silent> <leader>ft :call fzf#vim#files('', fzf#vim#with_preview({'sink': 'tabedit'}), 0)<CR>
