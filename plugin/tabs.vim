@@ -196,8 +196,8 @@ set showtabline=2
 function! TabsVim_ModeName() abort
   let l:map = {
     \ 'n':    'N',  'no':   'N·OP',
-    \ 'i':    'I',  'ic':   'I·COMP',  'ix': 'I·X',
-    \ 'R':    'R', 'Rc':   'R·COMP',
+    \ 'i':    'I',  'ic':   'INSERT',  'ix': 'INSERT',
+    \ 'R':    'R', 'Rc':   'REPLACE',
     \ 'v':    'V',  'V':    'V·LINE',  "\<C-v>": 'V·BLOCK',
     \ 's':    'S',  'S':    'S·LINE',  "\<C-s>": 'S·BLOCK',
     \ 'c':    'C', 't':    'T'
