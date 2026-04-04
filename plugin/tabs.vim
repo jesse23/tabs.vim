@@ -175,21 +175,47 @@ endif
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " ══════════════════════════════════════════════════════════════════════════════
-" MODE COLORS — edit guibg to restyle each mode pill (fg is always dark #282a36)
-hi TabsVim_Normal   guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
-hi TabsVim_Insert   guifg=#282a36 guibg=#50fa7b ctermfg=235 ctermbg=84  gui=bold cterm=bold
-hi TabsVim_Visual   guifg=#282a36 guibg=#ffb86c ctermfg=235 ctermbg=215 gui=bold cterm=bold
-hi TabsVim_Replace  guifg=#282a36 guibg=#ff5555 ctermfg=235 ctermbg=203 gui=bold cterm=bold
-hi TabsVim_Command  guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
-hi TabsVim_Terminal guifg=#282a36 guibg=#8be9fd ctermfg=235 ctermbg=117 gui=bold cterm=bold
-hi TabsVim_Accent   guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
-" Active tab text — same hue as mode pill, no background
-hi TabsVim_SelNormal   guifg=#bd93f9 guibg=NONE ctermbg=NONE ctermfg=141 gui=bold cterm=bold
-hi TabsVim_SelInsert   guifg=#50fa7b guibg=NONE ctermbg=NONE ctermfg=84  gui=bold cterm=bold
-hi TabsVim_SelVisual   guifg=#ffb86c guibg=NONE ctermbg=NONE ctermfg=215 gui=bold cterm=bold
-hi TabsVim_SelReplace  guifg=#ff5555 guibg=NONE ctermbg=NONE ctermfg=203 gui=bold cterm=bold
-hi TabsVim_SelCommand  guifg=#bd93f9 guibg=NONE ctermbg=NONE ctermfg=141 gui=bold cterm=bold
-hi TabsVim_SelTerminal guifg=#8be9fd guibg=NONE ctermbg=NONE ctermfg=117 gui=bold cterm=bold
+" MODE COLORS — override any mode via g:tabs_vim_colors (see docs/specs/tabs.vim.md)
+" Each entry: [guifg, guibg, ctermfg, ctermbg]
+let s:tabs_vim_defaults = {
+  \ 'normal':       ['#282a36', '#bd93f9', 235, 141],
+  \ 'insert':       ['#282a36', '#50fa7b', 235, 84 ],
+  \ 'visual':       ['#282a36', '#ffb86c', 235, 215],
+  \ 'replace':      ['#282a36', '#ff5555', 235, 203],
+  \ 'command':      ['#282a36', '#bd93f9', 235, 141],
+  \ 'terminal':     ['#282a36', '#8be9fd', 235, 117],
+  \ 'tabline':      ['#6272a4', 'NONE',    61,  'NONE'],
+  \ 'tabline_sel':  ['#bd93f9', 'NONE',    141, 'NONE'],
+  \ 'tabline_fill': ['#6272a4', 'NONE',    61,  'NONE'],
+\ }
+
+function! s:ApplyColors() abort
+  let l:user = exists('g:tabs_vim_colors') ? g:tabs_vim_colors : {}
+  for [l:key, l:Cap] in [['normal', 'Normal'], ['insert', 'Insert'], ['visual', 'Visual'],
+                        \ ['replace', 'Replace'], ['command', 'Command'], ['terminal', 'Terminal']]
+    let l:ov  = get(l:user, l:key, [])
+    let l:col = (type(l:ov) == type([]) && len(l:ov) == 4) ? l:ov : s:tabs_vim_defaults[l:key]
+    execute printf('hi TabsVim_%s guifg=%s guibg=%s ctermfg=%s ctermbg=%s gui=bold cterm=bold',
+          \ l:Cap, l:col[0], l:col[1], l:col[2], l:col[3])
+    execute printf('hi TabsVim_Sel%s guifg=%s guibg=NONE ctermfg=%s ctermbg=NONE gui=bold cterm=bold',
+          \ l:Cap, l:col[1], l:col[3])
+  endfor
+  let l:ov = get(l:user, 'normal', [])
+  let l:n  = (type(l:ov) == type([]) && len(l:ov) == 4) ? l:ov : s:tabs_vim_defaults['normal']
+  execute printf('hi TabsVim_Accent guifg=%s guibg=%s ctermfg=%s ctermbg=%s gui=bold cterm=bold',
+        \ l:n[0], l:n[1], l:n[2], l:n[3])
+  for [l:key, l:Group, l:bold] in [
+        \ ['tabline',      'TabLine',     'NONE'],
+        \ ['tabline_sel',  'TabLineSel',  'bold'],
+        \ ['tabline_fill', 'TabLineFill', 'NONE']]
+    let l:ov  = get(l:user, l:key, [])
+    let l:col = (type(l:ov) == type([]) && len(l:ov) == 4) ? l:ov : s:tabs_vim_defaults[l:key]
+    execute printf('hi %s guifg=%s guibg=%s ctermfg=%s ctermbg=%s gui=%s cterm=%s',
+          \ l:Group, l:col[0], l:col[1], l:col[2], l:col[3], l:bold, l:bold)
+  endfor
+endfunction
+
+call s:ApplyColors()
 " ══════════════════════════════════════════════════════════════════════════════
 
 set showtabline=2
