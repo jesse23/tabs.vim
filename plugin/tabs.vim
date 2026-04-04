@@ -171,10 +171,10 @@ if has('patch-8.0.0210') && !has('gui_running')
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" THEMING: Tab bar with mode indicator (Normal/Insert/Visual/Replace/Command)
+" Tab bar — replaces status line: mode (left) | tabs (center) | position (right)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" ── Highlight groups ───────────────────────────────────────────────────────
+" ══════════════════════════════════════════════════════════════════════════════
 " MODE COLORS — edit guibg to restyle each mode pill (fg is always dark #282a36)
 hi TabsVim_Normal   guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
 hi TabsVim_Insert   guifg=#282a36 guibg=#50fa7b ctermfg=235 ctermbg=84  gui=bold cterm=bold
@@ -182,6 +182,7 @@ hi TabsVim_Visual   guifg=#282a36 guibg=#ffb86c ctermfg=235 ctermbg=215 gui=bold
 hi TabsVim_Replace  guifg=#282a36 guibg=#ff5555 ctermfg=235 ctermbg=203 gui=bold cterm=bold
 hi TabsVim_Command  guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
 hi TabsVim_Terminal guifg=#282a36 guibg=#8be9fd ctermfg=235 ctermbg=117 gui=bold cterm=bold
+hi TabsVim_Accent   guifg=#282a36 guibg=#bd93f9 ctermfg=235 ctermbg=141 gui=bold cterm=bold
 " Active tab text — same hue as mode pill, no background
 hi TabsVim_SelNormal   guifg=#bd93f9 guibg=NONE ctermbg=NONE ctermfg=141 gui=bold cterm=bold
 hi TabsVim_SelInsert   guifg=#50fa7b guibg=NONE ctermbg=NONE ctermfg=84  gui=bold cterm=bold
@@ -189,10 +190,10 @@ hi TabsVim_SelVisual   guifg=#ffb86c guibg=NONE ctermbg=NONE ctermfg=215 gui=bol
 hi TabsVim_SelReplace  guifg=#ff5555 guibg=NONE ctermbg=NONE ctermfg=203 gui=bold cterm=bold
 hi TabsVim_SelCommand  guifg=#bd93f9 guibg=NONE ctermbg=NONE ctermfg=141 gui=bold cterm=bold
 hi TabsVim_SelTerminal guifg=#8be9fd guibg=NONE ctermbg=NONE ctermfg=117 gui=bold cterm=bold
+" ══════════════════════════════════════════════════════════════════════════════
 
 set showtabline=2
 
-" Get current mode name
 function! TabsVim_ModeName() abort
   let l:map = {
     \ 'n':    'N',  'no':   'N·OP',
@@ -205,7 +206,6 @@ function! TabsVim_ModeName() abort
   return get(l:map, mode(), mode())
 endfunction
 
-" Get mode highlight groups
 function! TabsVim_ModeHl() abort
   let l:m = mode()
   if     l:m =~# '^[vV\x16]' | return ['%#TabsVim_Visual#',   '%#TabsVim_SelVisual#']
@@ -217,12 +217,10 @@ function! TabsVim_ModeHl() abort
   endif
 endfunction
 
-" Build tab line with tabs (left) and mode indicator (right)
 function! TabsVim_Line() abort
   let l:hls = TabsVim_ModeHl()   " [pill_hl, sel_tab_hl]
+  " ── Left: tabs (%NT = native Vim click-to-switch + drag)
   let s = ''
-  
-  " ── Tabs (left) ────────────────────────────────────────────────────────
   for t in range(1, tabpagenr('$'))
     let buflist = tabpagebuflist(t)
     let buf     = buflist[tabpagewinnr(t) - 1]
@@ -235,7 +233,7 @@ function! TabsVim_Line() abort
     if t < tabpagenr('$') | let s .= '%#TabLineFill#│' | endif
   endfor
 
-  " ── Mode block (right) ─────────────────────────────────────────────────
+  " ── Right: mode block ───────────────────────────────────────────────────────
   let s .= '%T%=' . l:hls[0] . ' ' . TabsVim_ModeName() . ' '
 
   return s
