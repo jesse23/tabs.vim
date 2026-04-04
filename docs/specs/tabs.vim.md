@@ -1,7 +1,7 @@
 # tabs.vim
 
 **Version:** 0.1.0  
-**Last Updated:** 2026-04-03  
+**Last Updated:** 2026-04-04  
 **Status:** Active Development
 
 ---
@@ -131,22 +131,31 @@ All keybindings are configurable. Users can disable features (e.g., if they don'
 **4. Integrated Theming**  
 Dracula color scheme is the built-in default; tab bar includes mode indicator (Normal/Insert/Visual/Replace/Command/Terminal) with context-aware highlighting. Users may override any or all mode colors via `g:tabs_vim_colors`.
 
+**5. Vimrc Integration Boundary**  
+The plugin owns all behavior it directly triggers. Integration with third-party plugins (vim-flog, vim-fugitive, diff buffers) — for example, binding `q` to `:tabclose` in their buffer types — is intentionally left to the user's vimrc. These bindings are tab-aware but depend on optional external plugins; pulling them into tabs.vim would introduce undeclared dependencies and couple the plugin to unrelated workflows.
+
 ### Color Configuration Contract
 
-Mode colors are configurable via the `g:tabs_vim_colors` global dict. Each key is a lowercase mode name; each value is a four-element list `[guifg, guibg, ctermfg, ctermbg]`. Unspecified modes fall back to the built-in Dracula defaults. The dict is read once at plugin load time (after `colorscheme` is applied).
+All tab bar colors are configurable via the `g:tabs_vim_colors` global dict. Each key is a lowercase name; each value is a four-element list `[guifg, guibg, ctermfg, ctermbg]`. Unspecified keys fall back to the built-in Dracula defaults. The dict is read once at plugin load time (after `colorscheme` is applied).
 
-**Supported keys:** `normal`, `insert`, `visual`, `replace`, `command`, `terminal`
+The plugin owns the full tab bar and applies all highlight groups itself — no separate `hi TabLine*` declarations are needed in the user's vimrc.
+
+**Mode color keys:** `normal`, `insert`, `visual`, `replace`, `command`, `terminal`  
+**Tab bar chrome keys:** `tabline`, `tabline_sel`, `tabline_fill`
 
 **Default (Dracula palette):**
 
 ```vim
 let g:tabs_vim_colors = {
-  \ 'normal':   ['#282a36', '#bd93f9', 235, 141],
-  \ 'insert':   ['#282a36', '#50fa7b', 235, 84 ],
-  \ 'visual':   ['#282a36', '#ffb86c', 235, 215],
-  \ 'replace':  ['#282a36', '#ff5555', 235, 203],
-  \ 'command':  ['#282a36', '#bd93f9', 235, 141],
-  \ 'terminal': ['#282a36', '#8be9fd', 235, 117],
+  \ 'normal':       ['#282a36', '#bd93f9', 235, 141],
+  \ 'insert':       ['#282a36', '#50fa7b', 235, 84 ],
+  \ 'visual':       ['#282a36', '#ffb86c', 235, 215],
+  \ 'replace':      ['#282a36', '#ff5555', 235, 203],
+  \ 'command':      ['#282a36', '#bd93f9', 235, 141],
+  \ 'terminal':     ['#282a36', '#8be9fd', 235, 117],
+  \ 'tabline':      ['#6272a4', 'NONE',    61,  'NONE'],
+  \ 'tabline_sel':  ['#bd93f9', 'NONE',    141, 'NONE'],
+  \ 'tabline_fill': ['#6272a4', 'NONE',    61,  'NONE'],
 \ }
 ```
 
@@ -200,17 +209,17 @@ let g:tabs_vim_colors = {
 
 ## Features
 
-| Feature | Description | Status | ADR |
-|---------|-------------|--------|-----|
-| **Tab Navigation** | Switch to next/prev tab with `<Tab>` / `<S-Tab>` | ⬜ | — |
-| **Direct Tab Jump** | Jump to tab 1-9 with `<leader>[1-9]` | ⬜ | — |
-| **Tab Creation** | Create new tab with `<leader>wt`, via file picker with `<leader>ft` | ⬜ | — |
-| **Tab Closing** | Close current tab or all but current with `<leader>x` / `<leader>X` | ⬜ | — |
-| **Tab Appearance** | Dracula default theme; user-configurable colors via `g:tabs_vim_colors` | ⬜ | ADR-002 |
-| **File Tree Integration** | Open files in tabs from Fern file browser (`t` key) | ⬜ | — |
-| **Git Integration** | Open git-related output (diffs, logs) in tabs | ⬜ | — |
-| **Terminal in Tabs** | Spawn terminal windows in new tabs (separate from splits) | ⬜ | — |
-| **Which-Key Support** | Tab commands exposed in `<Space>` menu hierarchy | ⬜ | — |
+| Feature | Description | ADR | Done? |
+|---------|-------------|-----|-------|
+| **Tab Navigation** | Switch to next/prev tab with `<Tab>` / `<S-Tab>` | — | ✅ |
+| **Direct Tab Jump** | Jump to tab 1-9 with `<leader>[1-9]` | — | ✅ |
+| **Tab Creation** | Create new tab with `<leader>wt`, via file picker with `<leader>ft` | — | ✅ |
+| **Tab Closing** | Close current tab or all but current with `<leader>x` / `<leader>X` | — | ✅ |
+| **Tab Appearance** | Dracula default theme; user-configurable colors via `g:tabs_vim_colors` | ADR-002 | ✅ |
+| **Terminal in Tabs** | Toggle split terminals and spawn tab terminals (`<leader>h/ts/tv/tt`) | — | ✅ |
+| **File Tree Integration** | Open files in tabs from Fern file browser (`t` key) | — | ⬜ |
+| **Git Integration** | Open git-related output (diffs, logs) in tabs | — | ⬜ |
+| **Which-Key Support** | Tab commands exposed in `<Space>` menu hierarchy | — | ⬜ |
 
 ---
 
@@ -233,3 +242,5 @@ None yet.
 | Date | Change |
 |------|--------|
 | 2026-04-03 | Initial SPEC: navigation, creation, theming |
+| 2026-04-04 | Extend color config: plugin now owns TabLine/TabLineSel/TabLineFill via `tabline`, `tabline_sel`, `tabline_fill` keys |
+| 2026-04-04 | Add Vimrc Integration Boundary pattern; mark completed features; align Features table to template |
