@@ -187,18 +187,19 @@ let s:tabs_vim_defaults = {
 \ }
 
 function! s:ApplyColors() abort
-  let l:c = extend(copy(s:tabs_vim_defaults),
-        \ exists('g:tabs_vim_colors') ? g:tabs_vim_colors : {})
+  let l:user = exists('g:tabs_vim_colors') ? g:tabs_vim_colors : {}
   for [l:key, l:Cap] in [['normal', 'Normal'], ['insert', 'Insert'], ['visual', 'Visual'],
                         \ ['replace', 'Replace'], ['command', 'Command'], ['terminal', 'Terminal']]
-    let l:col = l:c[l:key]
-    execute printf('hi TabsVim_%s guifg=%s guibg=%s ctermfg=%d ctermbg=%d gui=bold cterm=bold',
+    let l:ov  = get(l:user, l:key, [])
+    let l:col = (type(l:ov) == type([]) && len(l:ov) == 4) ? l:ov : s:tabs_vim_defaults[l:key]
+    execute printf('hi TabsVim_%s guifg=%s guibg=%s ctermfg=%s ctermbg=%s gui=bold cterm=bold',
           \ l:Cap, l:col[0], l:col[1], l:col[2], l:col[3])
-    execute printf('hi TabsVim_Sel%s guifg=%s guibg=NONE ctermfg=%d ctermbg=NONE gui=bold cterm=bold',
+    execute printf('hi TabsVim_Sel%s guifg=%s guibg=NONE ctermfg=%s ctermbg=NONE gui=bold cterm=bold',
           \ l:Cap, l:col[1], l:col[3])
   endfor
-  let l:n = l:c['normal']
-  execute printf('hi TabsVim_Accent guifg=%s guibg=%s ctermfg=%d ctermbg=%d gui=bold cterm=bold',
+  let l:ov = get(l:user, 'normal', [])
+  let l:n  = (type(l:ov) == type([]) && len(l:ov) == 4) ? l:ov : s:tabs_vim_defaults['normal']
+  execute printf('hi TabsVim_Accent guifg=%s guibg=%s ctermfg=%s ctermbg=%s gui=bold cterm=bold',
         \ l:n[0], l:n[1], l:n[2], l:n[3])
 endfunction
 
