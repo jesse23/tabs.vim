@@ -1,0 +1,6 @@
+.claude/          export-ignore
+.gitattributes    export-ignore
+docs/             export-ignore
+AGENTS.md         export-ignore
+CLAUDE.md         export-ignore
+skills-lock.json  export-ignore
