@@ -31,7 +31,6 @@ All operations are available as public `TabsVim_*` functions. Users bind them in
 | Function | Description |
 |----------|-------------|
 | `TabsVim_NewTab()` | Open a new empty tab (`:tabnew`) |
-| `TabsVim_JumpTab(n)` | Jump directly to tab number `n` |
 | `TabsVim_CloseOrHide()` | Close the current window; if last window, prompt to quit Vim; if a terminal buffer, toggle-hide it instead |
 | `TabsVim_TabOnly()` | Close all tabs except the current one (`:tabonly`) |
 
@@ -73,14 +72,14 @@ Copy and adapt the block below. Remove any function you don't use.
 
 ```vim
 " ── Tab navigation ────────────────────────────────────────────────────────────
-" Native Vim: gt / gT / <count>gt already work — no plugin binding needed.
+" Native Vim: gt / gT / <count>gt already cover next/prev/jump — no plugin binding needed.
 nnoremap <silent> <leader>wt :call TabsVim_NewTab()<CR>
 nnoremap <silent> <leader>x  :call TabsVim_CloseOrHide()<CR>
 nnoremap <silent> <leader>X  :call TabsVim_TabOnly()<CR>
 
-" Direct tab jumps: <leader>1 … <leader>9
+" Direct tab jumps: <leader>1 … <leader>9 (uses native <count>gt)
 for s:i in range(1, 9)
-  execute 'nnoremap <silent> <leader>' . s:i . ' :call TabsVim_JumpTab(' . s:i . ')<CR>'
+  execute 'nnoremap <silent> <leader>' . s:i . ' ' . s:i . 'gt'
 endfor
 
 " ── Window / split ────────────────────────────────────────────────────────────
@@ -106,17 +105,15 @@ nnoremap <silent> <leader>ft :call TabsVim_FzfOpenInTab()<CR>
 
 ### `g<number>` for direct tab jumps
 
-`g1`–`g9` are unbound in stock Vim and generally free. However, `g0` is taken (go to first character of the screen line). For that reason, the recommended block uses `<leader>1`–`<leader>9` instead.
-
-If you prefer `g<number>`, use a range of 1–9 only and never bind `g0`:
+`<number>gt` (e.g. `3gt`) is native Vim and requires no plugin function. If you want a shorter shorthand, `g1`–`g9` are unbound in stock Vim and generally free — but `g0` is taken (go to first character of the screen line), so never bind `g0`.
 
 ```vim
 for s:i in range(1, 9)
-  execute 'nnoremap <silent> g' . s:i . ' :call TabsVim_JumpTab(' . s:i . ')<CR>'
+  execute 'nnoremap <silent> g' . s:i . ' ' . s:i . 'gt'
 endfor
 ```
 
-Note that `<number>gt` (e.g. `3gt`) is already native Vim and equivalent. `g<number>` is a convenience shorthand that saves one keystroke.
+This is a pure vimrc concern — no plugin function is needed.
 
 ### `<C-]>` for terminal navigation
 
