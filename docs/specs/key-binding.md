@@ -24,29 +24,7 @@ The one OOTB behavior is **mouse drag-and-drop file opening**: dropping a file f
 
 ## Public Function API
 
-All operations are available as public `TabsVim_*` functions. Users bind them in their vimrc.
-
-### Tab Navigation & Management
-
-| Function | Description |
-|----------|-------------|
-| `TabsVim_NewTab()` | Open a new empty tab (`:tabnew`) |
-| `TabsVim_CloseOrHide()` | Close the current window; if last window, prompt to quit Vim; if a terminal buffer, toggle-hide it instead |
-| `TabsVim_TabOnly()` | Close all tabs except the current one (`:tabonly`) |
-
-### Window / Split Operations
-
-| Function | Description |
-|----------|-------------|
-| `TabsVim_SplitH()` | Horizontal split (`:sp`) |
-| `TabsVim_SplitV()` | Vertical split (`:vsp`) |
-| `TabsVim_WinOnly()` | Close all other windows in the current tab (`:only`) |
-
-### Buffer Operations
-
-| Function | Description |
-|----------|-------------|
-| `TabsVim_RenameBuffer()` | Prompt to rename the current buffer |
+Only operations with real logic are exposed as `TabsVim_*` functions. Simple one-liner native commands (`:tabnew`, `:sp`, `:tabonly`, `:only`, `:tabedit <cfile>`, `let @+ = expand("%:p")`) are documented as direct vimrc mappings below — no wrapper needed.
 
 ### Terminal Operations
 
@@ -56,36 +34,41 @@ All operations are available as public `TabsVim_*` functions. Users bind them in
 | `TabsVim_ToggleVertTerm()` | Toggle a persistent vertical split terminal (right, 80 cols) |
 | `TabsVim_NewTabTerm()` | Open a new terminal in its own tab |
 
-### File Operations
+### Window / Buffer Operations
 
 | Function | Description |
 |----------|-------------|
-| `TabsVim_OpenFileUnderCursor()` | Open the file path under the cursor in a new tab (extends native `gf`) |
-| `TabsVim_CopyFilePath()` | Copy the current buffer's absolute path to the system clipboard |
+| `TabsVim_CloseOrHide()` | Close the current window; if last window, prompt to quit Vim; if a terminal buffer, toggle-hide it instead |
+| `TabsVim_RenameBuffer()` | Prompt to rename the current buffer |
+
+### FZF Integration
+
+| Function | Description |
+|----------|-------------|
 | `TabsVim_FzfOpenInTab()` | Open fzf file picker with `tabedit` as the sink (requires fzf.vim) |
 
 ---
 
 ## Recommended vimrc Wiring
 
-Copy and adapt the block below. Remove any function you don't use.
+Copy and adapt the block below. Remove any line you don't use.
 
 ```vim
 " ── Tab navigation ────────────────────────────────────────────────────────────
-" Native Vim: gt / gT / <count>gt already cover next/prev/jump — no plugin binding needed.
-nnoremap <silent> <leader>wt :call TabsVim_NewTab()<CR>
+" Native: gt / gT / <count>gt — no plugin binding needed.
+nnoremap <silent> <leader>wt :tabnew<CR>
 nnoremap <silent> <leader>x  :call TabsVim_CloseOrHide()<CR>
-nnoremap <silent> <leader>X  :call TabsVim_TabOnly()<CR>
+nnoremap <silent> <leader>X  :tabonly<CR>
 
-" Direct tab jumps: <leader>1 … <leader>9 (uses native <count>gt)
+" Direct tab jumps: <leader>1 … <leader>9 (native <count>gt)
 for s:i in range(1, 9)
   execute 'nnoremap <silent> <leader>' . s:i . ' ' . s:i . 'gt'
 endfor
 
-" ── Window / split ────────────────────────────────────────────────────────────
-nnoremap <silent> <leader>ws :call TabsVim_SplitH()<CR>
-nnoremap <silent> <leader>wv :call TabsVim_SplitV()<CR>
-nnoremap <silent> <leader>wm :call TabsVim_WinOnly()<CR>
+" ── Window / split — native commands ─────────────────────────────────────────
+nnoremap <silent> <leader>ws :sp<CR>
+nnoremap <silent> <leader>wv :vsp<CR>
+nnoremap <silent> <leader>wm :only<CR>
 nnoremap <silent> <leader>wr :call TabsVim_RenameBuffer()<CR>
 
 " ── Terminal ──────────────────────────────────────────────────────────────────
@@ -93,9 +76,9 @@ nnoremap <silent> <leader>ts :call TabsVim_ToggleHorizTerm()<CR>
 nnoremap <silent> <leader>tv :call TabsVim_ToggleVertTerm()<CR>
 nnoremap <silent> <leader>tt :call TabsVim_NewTabTerm()<CR>
 
-" ── File operations ───────────────────────────────────────────────────────────
-nnoremap <silent> gF         :call TabsVim_OpenFileUnderCursor()<CR>
-nnoremap <silent> <leader>fy :call TabsVim_CopyFilePath()<CR>
+" ── File operations — native commands ────────────────────────────────────────
+nnoremap <silent> gF         :tabedit <cfile><CR>
+nnoremap <silent> <leader>fy :let @+ = expand("%:p")<CR>
 nnoremap <silent> <leader>ft :call TabsVim_FzfOpenInTab()<CR>
 ```
 
