@@ -140,6 +140,10 @@ All tab bar colors are configurable via the `g:tabs_vim_colors` global dict. Eac
 
 The plugin owns the full tab bar and applies all highlight groups itself — no separate `hi TabLine*` declarations are needed in the user's vimrc.
 
+In the plugin-managed tab bar, the selected tab is styled by the active mode color via mode-specific selected-tab groups (`TabsVim_SelNormal`, `TabsVim_SelInsert`, etc.). Changing `normal`, `insert`, `visual`, `replace`, `command`, or `terminal` therefore changes selected-tab appearance for that mode.
+
+`tabline`, `tabline_sel`, and `tabline_fill` map to Vim's standard `TabLine`, `TabLineSel`, and `TabLineFill` groups. `tabline_sel` is retained for compatibility/interoperability with non-plugin or default tabline contexts, but it does not control selected-tab styling inside `TabsVim_Line()`.
+
 **Mode color keys:** `normal`, `insert`, `visual`, `replace`, `command`, `terminal`  
 **Tab bar chrome keys:** `tabline`, `tabline_sel`, `tabline_fill`
 
