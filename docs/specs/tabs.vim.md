@@ -129,7 +129,7 @@ Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimple
 All keybindings are configurable. Users can disable features (e.g., if they don't use tabs) without source code changes.
 
 **4. Integrated Theming**  
-Dracula color scheme is the built-in default; tab bar includes mode indicator (Normal/Insert/Visual/Replace/Command/Terminal) with context-aware highlighting. Users may override any or all mode colors via `g:tabs_vim_colors`.
+Dracula color scheme is the built-in default; the tab bar can show a mode pill (Normal/Insert/Visual/Replace/Command/Terminal) and can style the selected tab by mode, depending on `g:tabs_vim_mode_style`. Users may override any or all mode colors via `g:tabs_vim_colors`.
 
 **5. Vimrc Integration Boundary**  
 The plugin owns all behavior it directly triggers. Integration with third-party plugins (vim-flog, vim-fugitive, diff buffers) — for example, binding `q` to `:tabclose` in their buffer types — is intentionally left to the user's vimrc. These bindings are tab-aware but depend on optional external plugins; pulling them into tabs.vim would introduce undeclared dependencies and couple the plugin to unrelated workflows.
@@ -140,12 +140,31 @@ All tab bar colors are configurable via the `g:tabs_vim_colors` global dict. Eac
 
 The plugin owns the full tab bar and applies all highlight groups itself — no separate `hi TabLine*` declarations are needed in the user's vimrc.
 
-In the plugin-managed tab bar, the selected tab is styled by the active mode color via mode-specific selected-tab groups (`TabsVim_SelNormal`, `TabsVim_SelInsert`, etc.). Changing `normal`, `insert`, `visual`, `replace`, `command`, or `terminal` therefore changes selected-tab appearance for that mode.
+In `all` and `tabs` mode, the selected tab is styled by the active mode color via mode-specific selected-tab groups (`TabsVim_SelNormal`, `TabsVim_SelInsert`, etc.). In `mode`, selected-tab styling comes from `tabline_sel` instead. Changing `normal`, `insert`, `visual`, `replace`, `command`, or `terminal` therefore changes selected-tab appearance in `all` and `tabs` mode.
 
-`tabline`, `tabline_sel`, and `tabline_fill` map to Vim's standard `TabLine`, `TabLineSel`, and `TabLineFill` groups. `tabline_sel` is retained for compatibility/interoperability with non-plugin or default tabline contexts, but it does not control selected-tab styling inside `TabsVim_Line()`.
+`tabline`, `tabline_sel`, and `tabline_fill` map to Vim's standard `TabLine`, `TabLineSel`, and `TabLineFill` groups. `tabline_sel` does not control selected-tab styling in `all` or `tabs` mode; in `mode` mode, `tabline_sel` is the selected-tab style source.
 
 **Mode color keys:** `normal`, `insert`, `visual`, `replace`, `command`, `terminal`  
 **Tab bar chrome keys:** `tabline`, `tabline_sel`, `tabline_fill`
+
+### Mode Style Contract
+
+Mode style is controlled by `g:tabs_vim_mode_style`.
+
+```vim
+" default
+let g:tabs_vim_mode_style = 'all'
+```
+
+Allowed values:
+
+| Value | Behavior |
+|-------|----------|
+| `all` | Current behavior: selected-tab color is mode-driven and top-right mode pill is shown |
+| `tabs` | Mode-driven selected-tab color remains, but top-right mode pill is hidden |
+| `mode` | Top-right mode pill is shown; selected-tab color is fixed to `tabline_sel` |
+
+Unknown values should fall back to `all` for backward compatibility.
 
 **Default (Dracula palette):**
 
@@ -220,6 +239,7 @@ let g:tabs_vim_colors = {
 | **Tab Creation** | Create new tab with `<leader>wt`, via file picker with `<leader>ft` | — | ✅ |
 | **Tab Closing** | Close current tab or all but current with `<leader>x` / `<leader>X` | — | ✅ |
 | **Tab Appearance** | Dracula default theme; user-configurable colors via `g:tabs_vim_colors` | ADR-002 | ✅ |
+| **Mode Style Variants** | `g:tabs_vim_mode_style` supports `all` / `tabs` / `mode` display strategies | ADR-003 | ⬜ |
 | **Terminal in Tabs** | Toggle split terminals and spawn tab terminals (`<leader>h/ts/tv/tt`) | — | ✅ |
 | **File Tree Integration** | Open files in tabs from Fern file browser (`t` key) | — | ⬜ |
 | **Git Integration** | Open git-related output (diffs, logs) in tabs | — | ⬜ |
@@ -248,3 +268,4 @@ None yet.
 | 2026-04-03 | Initial SPEC: navigation, creation, theming |
 | 2026-04-04 | Extend color config: plugin now owns TabLine/TabLineSel/TabLineFill via `tabline`, `tabline_sel`, `tabline_fill` keys |
 | 2026-04-04 | Add Vimrc Integration Boundary pattern; mark completed features; align Features table to template |
+| 2026-04-04 | Rename to `g:tabs_vim_mode_style` enum (`all` / `tabs` / `mode`) with `all` as default |
