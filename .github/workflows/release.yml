@@ -1,12 +1,14 @@
 name: Publish to main
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - dev
 
 jobs:
   publish:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout dev
@@ -32,6 +34,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to publish."
           else
-            git commit -m "chore: publish from dev @ $(git rev-parse --short dev)"
+            git commit -m "${{ github.event.pull_request.title }}"
             git push origin main
           fi
