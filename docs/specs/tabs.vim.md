@@ -76,83 +76,19 @@ The confusion deepens when users try split windows. Modern editors and Vim have 
 - **Surprise**: The split layout in the first tab doesn't carry over—new tab has single window
 - **Result**: Users feel like Vim splits are "temporary" or "tied to a context" when they're actually window layout within a tab
 
-### Terminal Concept: Tab vs Split
+### Terminal Misconception
 
-Modern editors and Vim diverge again on terminal management:
+Modern editors and Vim have opposite mental models for terminal management:
 
-| Concept | Modern Editor (VSCode) | Vim |
-|---------|---|---|
-| **Terminal location** | Integrated panel at **bottom of editor** (or side); separate from file tabs | Terminal opens as a **buffer in a window**—just like any other file |
-| **Multiple terminals** | Multiple terminal panes in bottom panel; switcher shows all terminals | Multiple terminal buffers (`:term`), each takes a window; need to manage via `:ls` or fuzzy find |
-| **Terminal persistence** | Terminal output stays visible (bottom panel remains open) | Terminal hidden when switching tabs or windows; must `:term` or `:b` back |
-| **Context switching** | Click tab → see terminal simultaneously | Click new tab → terminal disappears from view; need separate window split to keep visible |
-| **Workflow** | Work in file tab, glance at terminal without switching | Edit file in one window, terminal in another window (same tab), or use `:term` popup |
-
-**The Conceptual Difference:**
-
-Modern editors treat **terminal as environment**, Vim treats it as **content**:
-
-| Dimension | Modern Editor | Vim |
-|-----------|---|---|
-| **Semantic role** | Terminal is **infrastructure** (always available for commands) | Terminal is **a buffer** (occupies window space like any file) |
-| **Navigation model** | Terminal is **orthogonal** to file editing (exists independently) | Terminal is **part of the workspace** (mixed with files in tabs/windows) |
-| **User mental model** | "I edit files; terminal is my command companion" | "I manage buffers/windows; terminal happens to be a buffer" |
-| **Visibility assumption** | Terminal should be **always accessible** (one keystroke away) | Terminal is **just another buffer** (need to navigate to it like any file) |
-| **Multi-tasking** | Multiple terminals can run **in parallel**, visible simultaneously | Each terminal buffer runs in a window; switching tabs hides it |
-
-**The Friction:**
-- Modern users come from tmux/IDE where terminal is a **separate persistent layer**
-- Vim has no separate layer; terminal = buffer = content
-- Result: Users switching from VSCode to Vim expect "keep terminal open while I edit" but Vim requires manual window management per tab
-
-**The Mental Model Clash:**
-- Modern editors: "Terminal is a **persistent widget** at the bottom, always accessible"
-- Vim: "Terminal is a **buffer like any other**, competes for window space in your tab layout"
-
-**Example Frustration:**
-- User in tab 1 with file editor, running `:term` to execute commands
-- User switches to tab 2 to edit another file
-- **Surprise**: Terminal disappeared (it was in tab 1's window layout)
-- User must either: keep terminal in a split window in every tab, or `:term` every time they need it
-- **Result**: Vim terminal workflow feels fragmented compared to editor's "always-on" panel
+| Concept | Modern Editor (VSCode) | Vim | Misconception |
+|---------|---|---|---|
+| **Terminal location** | Integrated panel at **bottom of editor** (or side); separate from file tabs | Terminal opens as a **buffer in a window**—just like any other file | Users think terminal is a **separate widget** (like IDE); it's actually just a buffer competing for space |
+| **Semantic role** | Terminal is **infrastructure** (always available for commands) | Terminal is **a buffer** (occupies window space like any file) | Users expect terminal to be **persistent** (always accessible); it's not—it's content |
+| **Navigation model** | Terminal is **orthogonal** to file editing (exists independently) | Terminal is **part of the workspace** (mixed with files in tabs/windows) | Users think opening a terminal doesn't affect file layout; in Vim, terminal takes a window in the current tab |
+| **Visibility assumption** | Terminal should be **always accessible** (one keystroke away) | Terminal is **just another buffer** (need to navigate to it like any file) | Users expect terminal visible across all tabs; in Vim, switching tabs hides the terminal |
+| **Multi-tasking** | Multiple terminals can run **in parallel**, visible simultaneously | Each terminal buffer runs in a window; switching tabs hides it | Users expect multiple terminals to stay **visible and running**; in Vim, only current tab's windows are visible |
 
 This is why `tabs.vim` supporting terminal operations (opening terminal in new tab) bridges a conceptual gap—it lets users treat terminal sessions as "tabs" (persistent contexts) rather than "buffers" (hidden unless explicitly switched to).
-
-### Why This Matters
-
-This hierarchy works *against* modern editor intuitions:
-
-1. **User expectation**: "Open file in a tab" → should be simple, it's not
-   - Naive approach: `tabedit file.txt` (correct, but obscure)
-   - What users try: `split file.txt` (opens in current window, not in new tab)
-   - Result: Confusion about what "tab" means
-
-2. **Context loss**: Tabs hide content, not consolidate it
-   - In VSCode/IDE: All tabs visible in one row (quick scan)
-   - In Vim: Only one tab visible; other tabs' content is hidden
-   - Result: Tabs feel like "hidden workspaces" not "open files"
-
-3. **Unnecessary indirection**: Modern users want to *think about files*, not *workspaces*
-   - Vim users who work in Vim+tmux circumvent this: one tmux window per logical project section
-   - Vim users who use buffers only skip tabs entirely, use `:b` or fuzzy finder
-   - Result: Tabs are relegated to power users or ignored completely
-
-### Current Vim Tab Workflow Pain Points
-
-Out of the box, Vim's tab workflow requires:
-- `gt` / `gT` to switch (non-standard navigation commands)
-- `:tabnew` or `:[N]tabnext` for most operations (verbose, not discoverable)
-- No visual affordance that tabs can be a primary navigation method
-- Tab indicator styling conflicts with popular color schemes
-- No quick jump-to-tab-N (each tab lacks a visible number)
-- Tab page line takes precious vertical space but shows minimal information
-
-**User Pain Points:**
-1. **Inefficient file switching** — Discovering which tab contains which file requires cycling through tabs visually
-2. **Context fragmentation** — Tab state (window layout, cursor position) is hidden; users lose orientation
-3. **No direct tab access** — Jumping to a specific open file requires Tab+Tab+Tab or remembering tab number + `:Ntabnext`
-4. **Conflicting mental models** — Vim's "tab as workspace" clashes with modern "tab as file" expectation
-5. **Poor discoverability** — Which-Key and other help systems don't naturally expose tab commands
 
 ---
 
@@ -165,22 +101,6 @@ Out of the box, Vim's tab workflow requires:
 | **Visual Clarity** | Make tabs the center of workflow | Color scheme integration, tab status in statusline |
 | **Ecosystem Integration** | Work with existing plugins (fzf, git, file tree) | Respect plugin output, use standard Vim events |
 | **Cross-Platform** | Work on macOS, Linux, and Windows with Vim/Neovim | Pure VimScript, no dependencies on external tools |
-
----
-
-## Features
-
-| Feature | Description | Status | ADR |
-|---------|-------------|--------|-----|
-| **Tab Navigation** | Switch to next/prev tab with `<Tab>` / `<S-Tab>` | ⬜ | — |
-| **Direct Tab Jump** | Jump to tab 1-9 with `<leader>[1-9]` | ⬜ | — |
-| **Tab Creation** | Create new tab with `<leader>wt`, via file picker with `<leader>ft` | ⬜ | — |
-| **Tab Closing** | Close current tab or all but current with `<leader>x` / `<leader>X` | ⬜ | — |
-| **Tab Appearance** | Dracula theme integration, minimal visual overhead | ⬜ | — |
-| **File Tree Integration** | Open files in tabs from Fern file browser (`t` key) | ⬜ | — |
-| **Git Integration** | Open git-related output (diffs, logs) in tabs | ⬜ | — |
-| **Terminal in Tabs** | Spawn terminal windows in new tabs (separate from splits) | ⬜ | — |
-| **Which-Key Support** | Tab commands exposed in `<Space>` menu hierarchy | ⬜ | — |
 
 ---
 
@@ -242,6 +162,22 @@ All keybindings are configurable. Users can disable features (e.g., if they don'
 - [ ] No conflicts with common plugin ecosystems (fzf, Fern, vim-fugitive)
 - [ ] Theming integrates with Dracula (and base16 palette)
 - [ ] README and AGENTS.md guide users through setup and customization
+
+---
+
+## Features
+
+| Feature | Description | Status | ADR |
+|---------|-------------|--------|-----|
+| **Tab Navigation** | Switch to next/prev tab with `<Tab>` / `<S-Tab>` | ⬜ | — |
+| **Direct Tab Jump** | Jump to tab 1-9 with `<leader>[1-9]` | ⬜ | — |
+| **Tab Creation** | Create new tab with `<leader>wt`, via file picker with `<leader>ft` | ⬜ | — |
+| **Tab Closing** | Close current tab or all but current with `<leader>x` / `<leader>X` | ⬜ | — |
+| **Tab Appearance** | Dracula theme integration, minimal visual overhead | ⬜ | — |
+| **File Tree Integration** | Open files in tabs from Fern file browser (`t` key) | ⬜ | — |
+| **Git Integration** | Open git-related output (diffs, logs) in tabs | ⬜ | — |
+| **Terminal in Tabs** | Spawn terminal windows in new tabs (separate from splits) | ⬜ | — |
+| **Which-Key Support** | Tab commands exposed in `<Space>` menu hierarchy | ⬜ | — |
 
 ---
 
