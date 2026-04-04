@@ -38,7 +38,20 @@ Vim's three-tier abstraction is powerful but creates cognitive friction:
 - Buffers are *invisible* but *persistent* — users don't see them in the UI, yet they're the fundamental unit
 - Windows are *visible* but *tied to tabs* — opening a split in tab A doesn't affect tab B's layout
 - Tabs *group windows* but are *optional* — many users never touch them, unaware tabs exist
-- Modern editors use "tab" to mean "open file" (buffer in Vim), but Vim's "tab" means "workspace"
+- **Terminology mismatch**: Modern editors call visible "tabs" what Vim calls "buffers"; Vim's "tabs" are workspaces
+
+### Terminology Mismatch: Modern UX vs Vim
+
+When users say "I want to open this file in a tab", they mean different things in different editors:
+
+| User Action | Modern Editor (VSCode, IDE) | Vim (Without tabs.vim) | Result |
+|-------------|---------------------------|------------------------|--------|
+| "Open file in a new tab" | Creates a new visible tab entry; file becomes active | `tabedit file.txt` (obscure; most users don't know this) | **Confusion**: Users try `:split` instead, which opens in current window, not workspace |
+| "Switch between open files" | Click tab, or use `Ctrl+Tab` | `gt` / `gT` (non-standard, hard to discover) | **Friction**: Navigation requires muscle memory for non-standard keys |
+| "See all open files" | Tab bar shows all files at a glance | Cycle through tabs with `gt` repeatedly, or use `:ls` | **Inefficiency**: No visual overview; must remember which tab is which |
+| "Close a file" | Click X on tab, or use `Ctrl+W` | `:tabclose` or `<leader>wc` (if configured) | **Obscurity**: No obvious keybinding; users default to `:bdelete` instead |
+| "Reorder files" | Drag tabs left/right | `:tabmove N` (manual, verbose) | **Barrier**: Tabs don't feel like "things you manage"; feels static |
+| "Jump to file N directly" | Click tab N visually, or `Alt+N` | Must know tab number + `:Ntabnext` or scroll to tab | **Discoverability**: No standard binding; `<leader>[1-9]` not obvious |
 
 ### Why This Matters
 
