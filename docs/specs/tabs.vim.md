@@ -68,7 +68,7 @@ The confusion deepens when users try split windows. Modern editors and Vim have 
 | **Scope of split** | Split is **global** (visible in all tabs) | Split is **tab-scoped** (each tab has independent window layout) | New Vim users expect splits to be "sticky"—if they split in tab A, they expect tab B to remember the split too |
 | **Close file in split** | Close a split pane, file remains in other panes or tab bar | `:q` closes the window; buffer persists (can `:b` back to it) | Users try to close a split and expect the file to disappear entirely; it doesn't |
 
-**Example of the Confusion:**
+*Example of the Confusion:**
 - User opens `file1.txt`, wants to see `file2.txt` alongside it
 - Modern editor thinking: "Open in split" → file2 appears in new pane
 - Vim reality: `:vsplit` + `:e file2.txt` → two windows in same tab showing both files
