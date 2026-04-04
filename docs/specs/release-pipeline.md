@@ -1,6 +1,5 @@
 # Release Pipeline
 
-**Version:** 0.1.0  
 **Last Updated:** 2026-04-03  
 **Status:** Proposed
 
@@ -43,25 +42,11 @@ dev  ──── feature branches ──── PRs ──→ dev
 
 ### Versioning
 
-Versions follow [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`
-
-| Change type | Version bump |
-|-------------|-------------|
-| Breaking change to keybindings or public API | MAJOR |
-| New feature (new keybinding, new command) | MINOR |
-| Bug fix, refactor, cosmetic | PATCH |
-
-Version is the single source of truth in `plugin/tabs.vim`:
-
-```vim
-let g:tabs_vim_version = '0.1.0'
-```
-
-A release is triggered by bumping this version on `dev`. The pipeline reads the version, creates a Git tag (`v0.1.0`), and publishes to `main`.
+No explicit version is maintained. vim-plug pins installs by commit hash and users run `:PlugUpdate` to move forward. This is sufficient for a plugin of this scope.
 
 ### Pipeline Trigger
 
-The CI pipeline runs on every push to `dev`. It only publishes a new release if the version in `plugin/tabs.vim` is higher than the latest Git tag. Non-version-bumping pushes to `dev` (e.g. spec edits) produce no release.
+The CI pipeline runs on every push to `dev` and unconditionally publishes to `main`.
 
 ### What Gets Published to `main`
 
@@ -87,21 +72,15 @@ File: `.github/workflows/release.yml`
 
 Steps:
 1. Trigger on push to `dev`
-2. Extract version from `plugin/tabs.vim` (`g:tabs_vim_version`)
-3. Compare against latest Git tag — skip if version unchanged
-4. Checkout `main`, copy plugin files from `dev`, commit, push
-5. Create Git tag `vX.Y.Z` on `main`
+2. Checkout `main`, copy plugin files from `dev`, commit, push
 
-### Version Bump Workflow (developer)
+### Developer Workflow
 
 1. Make changes on `dev` (or a feature branch merged into `dev`)
-2. Bump `g:tabs_vim_version` in `plugin/tabs.vim`
-3. Push to `dev` — CI handles the rest
+2. Push to `dev` — CI publishes to `main` automatically
 
 ---
 
 ## Constraints
 
 - `main` is never committed to manually — only the CI bot pushes there
-- Version must be bumped intentionally; CI does not auto-increment
-- Git tags are immutable — re-releasing the same version is not allowed
