@@ -40,18 +40,23 @@ Vim's three-tier abstraction is powerful but creates cognitive friction:
 - Tabs *group windows* but are *optional* — many users never touch them, unaware tabs exist
 - **Terminology mismatch**: Modern editors call visible "tabs" what Vim calls "buffers"; Vim's "tabs" are workspaces
 
-### Terminology Mismatch: Modern UX vs Vim
+### Conceptual Difference: Open File Semantics
 
-When users say "I want to open this file in a tab", they mean different things in different editors:
+The phrase "open a file" has fundamentally different meanings in modern editors vs Vim:
 
-| User Action | Modern Editor (VSCode, IDE) | Vim (Without tabs.vim) | Result |
-|-------------|---------------------------|------------------------|--------|
-| "Open file in a new tab" | Creates a new visible tab entry; file becomes active | `tabedit file.txt` (obscure; most users don't know this) | **Confusion**: Users try `:split` instead, which opens in current window, not workspace |
-| "Switch between open files" | Click tab, or use `Ctrl+Tab` | `gt` / `gT` (non-standard, hard to discover) | **Friction**: Navigation requires muscle memory for non-standard keys |
-| "See all open files" | Tab bar shows all files at a glance | Cycle through tabs with `gt` repeatedly, or use `:ls` | **Inefficiency**: No visual overview; must remember which tab is which |
-| "Close a file" | Click X on tab, or use `Ctrl+W` | `:tabclose` or `<leader>wc` (if configured) | **Obscurity**: No obvious keybinding; users default to `:bdelete` instead |
-| "Reorder files" | Drag tabs left/right | `:tabmove N` (manual, verbose) | **Barrier**: Tabs don't feel like "things you manage"; feels static |
-| "Jump to file N directly" | Click tab N visually, or `Alt+N` | Must know tab number + `:Ntabnext` or scroll to tab | **Discoverability**: No standard binding; `<leader>[1-9]` not obvious |
+| Concept | Modern Editor (VSCode, IDE) | Vim |
+|---------|---------------------------|-----|
+| **"Open file"** | Creates a new **visible tab** (one tab per file) | Opens a **buffer in current window** (hidden tabs exist; files stay off-screen) |
+| **What "tab" means** | A visible file entry; one tab = one open file | A workspace container; one tab groups multiple windows (buffers in splits) |
+| **File visibility** | All open files visible in tab bar; quick scan of what's open | Open files (buffers) are invisible; must use `:ls` or fuzzy finder to see them |
+| **Default workflow** | File → Tab bar → Click to switch | File → Buffer list → `:b filename` or fuzzy find to switch |
+| **Mental model** | "I work with tabs" (tabs are first-class) | "I work with buffers" (tabs are optional; buffers are first-class) |
+
+**The Gap:**
+- Modern users trained in VSCode/IDE expect: **"Open file" = create visible tab**
+- Vim users (and the plugin) must think: **"Open file" = create buffer (invisible) + optionally make it visible in a tab**
+
+This semantic difference is why new Vim users are confused. They try to "open a file in a tab" but Vim's default behavior is to open a buffer (which may or may not be in a tab, which may or may not be visible).
 
 ### Why This Matters
 
