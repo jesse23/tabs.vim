@@ -88,6 +88,23 @@ Modern editors and Vim diverge again on terminal management:
 | **Context switching** | Click tab → see terminal simultaneously | Click new tab → terminal disappears from view; need separate window split to keep visible |
 | **Workflow** | Work in file tab, glance at terminal without switching | Edit file in one window, terminal in another window (same tab), or use `:term` popup |
 
+**The Conceptual Difference:**
+
+Modern editors treat **terminal as environment**, Vim treats it as **content**:
+
+| Dimension | Modern Editor | Vim |
+|-----------|---|---|
+| **Semantic role** | Terminal is **infrastructure** (always available for commands) | Terminal is **a buffer** (occupies window space like any file) |
+| **Navigation model** | Terminal is **orthogonal** to file editing (exists independently) | Terminal is **part of the workspace** (mixed with files in tabs/windows) |
+| **User mental model** | "I edit files; terminal is my command companion" | "I manage buffers/windows; terminal happens to be a buffer" |
+| **Visibility assumption** | Terminal should be **always accessible** (one keystroke away) | Terminal is **just another buffer** (need to navigate to it like any file) |
+| **Multi-tasking** | Multiple terminals can run **in parallel**, visible simultaneously | Each terminal buffer runs in a window; switching tabs hides it |
+
+**The Friction:**
+- Modern users come from tmux/IDE where terminal is a **separate persistent layer**
+- Vim has no separate layer; terminal = buffer = content
+- Result: Users switching from VSCode to Vim expect "keep terminal open while I edit" but Vim requires manual window management per tab
+
 **The Mental Model Clash:**
 - Modern editors: "Terminal is a **persistent widget** at the bottom, always accessible"
 - Vim: "Terminal is a **buffer like any other**, competes for window space in your tab layout"
