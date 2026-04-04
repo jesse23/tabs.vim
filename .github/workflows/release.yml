@@ -30,7 +30,7 @@ jobs:
           git rm -rf . --quiet
 
           # Restore plugin files from dev
-          git checkout dev -- plugin/ README.md LICENSE
+          git checkout dev -- plugin/ doc/ README.md LICENSE
 
           # Only commit if there are changes
           if git diff --cached --quiet; then
