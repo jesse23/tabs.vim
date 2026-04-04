@@ -243,8 +243,18 @@ function! TabsVim_ModeHl() abort
   endif
 endfunction
 
+function! TabsVim_ModeStyle() abort
+  let l:style = get(g:, 'tabs_vim_mode_style', 'all')
+  if index(['all', 'tabs', 'mode'], l:style) < 0
+    return 'all'
+  endif
+  return l:style
+endfunction
+
 function! TabsVim_Line() abort
   let l:hls = TabsVim_ModeHl()   " [pill_hl, sel_tab_hl]
+  let l:style = TabsVim_ModeStyle()
+  let l:sel_hl = l:style ==# 'mode' ? '%#TabLineSel#' : l:hls[1]
   " ── Left: tabs (%NT = native Vim click-to-switch + drag)
   let s = ''
   for t in range(1, tabpagenr('$'))
@@ -253,14 +263,16 @@ function! TabsVim_Line() abort
     let name    = bufname(buf)
     let name    = empty(name) ? '[No Name]' : fnamemodify(name, ':t')
     let mod     = getbufvar(buf, '&modified') ? ' *' : ''
-    let s .= t == tabpagenr() ? l:hls[1] : '%#TabLine#'
+    let s .= t == tabpagenr() ? l:sel_hl : '%#TabLine#'
     let s .= '%' . t . 'T'
     let s .= ' ' . t . ' ' . name . mod . ' '
     if t < tabpagenr('$') | let s .= '%#TabLineFill#│' | endif
   endfor
 
   " ── Right: mode block ───────────────────────────────────────────────────────
-  let s .= '%T%=' . l:hls[0] . ' ' . TabsVim_ModeName() . ' '
+  if l:style !=# 'tabs'
+    let s .= '%T%=' . l:hls[0] . ' ' . TabsVim_ModeName() . ' '
+  endif
 
   return s
 endfunction

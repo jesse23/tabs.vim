@@ -1,0 +1,13 @@
+g:tabs_vim_colors	tabs.vim.txt	/*g:tabs_vim_colors*
+g:tabs_vim_mode_style	tabs.vim.txt	/*g:tabs_vim_mode_style*
+tabs.vim-colors	tabs.vim.txt	/*tabs.vim-colors*
+tabs.vim-config	tabs.vim.txt	/*tabs.vim-config*
+tabs.vim-contents	tabs.vim.txt	/*tabs.vim-contents*
+tabs.vim-installation	tabs.vim.txt	/*tabs.vim-installation*
+tabs.vim-intro	tabs.vim.txt	/*tabs.vim-intro*
+tabs.vim-keybindings	tabs.vim.txt	/*tabs.vim-keybindings*
+tabs.vim-license	tabs.vim.txt	/*tabs.vim-license*
+tabs.vim-mode-style	tabs.vim.txt	/*tabs.vim-mode-style*
+tabs.vim-requirements	tabs.vim.txt	/*tabs.vim-requirements*
+tabs.vim-tabline	tabs.vim.txt	/*tabs.vim-tabline*
+tabs.vim.txt	tabs.vim.txt	/*tabs.vim.txt*

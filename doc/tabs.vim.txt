@@ -1,0 +1,158 @@
+*tabs.vim.txt*  Mode-aware tabline with tab/terminal management
+
+==============================================================================
+CONTENTS                                                    *tabs.vim-contents*
+
+  1. Introduction ......................... |tabs.vim-intro|
+  2. Requirements ......................... |tabs.vim-requirements|
+  3. Installation ......................... |tabs.vim-installation|
+  4. Tabline .............................. |tabs.vim-tabline|
+  5. Keybindings .......................... |tabs.vim-keybindings|
+  6. Configuration ........................ |tabs.vim-config|
+     6.1 Mode Style ....................... |tabs.vim-mode-style|
+     6.2 Colors ........................... |tabs.vim-colors|
+  7. License .............................. |tabs.vim-license|
+
+==============================================================================
+1. Introduction                                               *tabs.vim-intro*
+
+tabs.vim replaces Vim's native tabline with a clean, mode-aware bar: open
+tabs on the left, a color-coded mode pill on the right. It also provides
+keybindings for tab/window management, split terminals, and file-drop support.
+
+==============================================================================
+2. Requirements                                        *tabs.vim-requirements*
+
+- Vim 8.2+ or Neovim 0.7+
+- Optional: junegunn/fzf.vim (for |<leader>ft|)
+
+==============================================================================
+3. Installation                                        *tabs.vim-installation*
+
+With vim-plug: >
+  Plug 'jesse23/tabs.vim'
+<
+With lazy.nvim: >
+  { 'jesse23/tabs.vim' }
+<
+==============================================================================
+4. Tabline                                                 *tabs.vim-tabline*
+
+The tabline shows:
+- Left side: numbered open tabs; active tab highlighted by current mode color;
+  modified buffers marked with ` *`
+- Right side: mode pill showing the current Vim mode (when enabled)
+
+Mode labels~
+  N        Normal
+  I        Insert
+  V        Visual / V·LINE / V·BLOCK
+  R        Replace
+  C        Command
+  T        Terminal
+
+==============================================================================
+5. Keybindings                                          *tabs.vim-keybindings*
+
+Tab navigation~
+  <Tab>           Next tab
+  <S-Tab>         Previous tab
+  <leader>1-9     Jump to tab 1–9
+
+Tab management~
+  <leader>wt      New empty tab
+  <leader>ft      Open file in new tab via fzf (requires fzf.vim)
+  <leader>x       Close window (or toggle terminal; quit prompt if last window)
+  <leader>X       Close all tabs except current
+  gF              Open file under cursor in new tab
+
+Window splits~
+  <leader>ws      Horizontal split
+  <leader>wv      Vertical split
+  <leader>wm      Maximize (close other windows)
+
+Buffer operations~
+  <leader>wr      Rename current buffer
+  <leader>fy      Copy full file path to clipboard
+
+Terminal~
+  <leader>h       Toggle horizontal split terminal (15 lines)
+  <leader>ts      Toggle horizontal split terminal (alias)
+  <leader>tv      Toggle vertical split terminal (80 cols)
+  <leader>tt      Open terminal in new tab
+  <C-]>           Enter terminal mode (normal→terminal)
+  <Esc> / <C-]>   Exit terminal mode
+
+File drop~
+  Drag a file from Finder/Explorer onto the terminal — it opens in a new tab.
+  Requires bracketed-paste support (e.g. iTerm2).
+
+==============================================================================
+6. Configuration                                           *tabs.vim-config*
+
+------------------------------------------------------------------------------
+6.1 Mode Style                                          *tabs.vim-mode-style*
+                                                       *g:tabs_vim_mode_style*
+
+Controls how mode information is presented in the tab bar.
+
+Default: `'all'`  >
+  let g:tabs_vim_mode_style = 'all'
+<
+Values:
+
+  `all`    Selected-tab color is mode-driven; mode pill is shown. (default)
+  `tabs`   Selected-tab color is mode-driven; mode pill is hidden.
+  `mode`   Mode pill is shown; selected-tab color is fixed to |TabLineSel|.
+
+Unknown values fall back to `'all'`.
+
+------------------------------------------------------------------------------
+6.2 Colors                                                  *tabs.vim-colors*
+                                                          *g:tabs_vim_colors*
+
+Override any tab bar color via a dict. Each value is a four-element list: >
+  [guifg, guibg, ctermfg, ctermbg]
+<
+Mode color keys (affect mode pill and, in `all`/`tabs` style, selected tab):
+  `normal`     Normal mode
+  `insert`     Insert mode
+  `visual`     Visual mode
+  `replace`    Replace mode
+  `command`    Command mode
+  `terminal`   Terminal mode
+
+Tab bar chrome keys:
+  `tabline`      Inactive tabs and separators (→ |TabLine|)
+  `tabline_sel`  Standard tab selection; selected-tab in `mode` style (→ |TabLineSel|)
+  `tabline_fill` Empty tabline fill area (→ |TabLineFill|)
+
+The plugin owns all TabLine* highlight groups — no separate `hi TabLine*`
+declarations are needed in your vimrc.
+
+Full override example (Dracula defaults): >
+  let g:tabs_vim_colors = {
+    \ 'normal':       ['#282a36', '#bd93f9', 235, 141],
+    \ 'insert':       ['#282a36', '#50fa7b', 235, 84 ],
+    \ 'visual':       ['#282a36', '#ffb86c', 235, 215],
+    \ 'replace':      ['#282a36', '#ff5555', 235, 203],
+    \ 'command':      ['#282a36', '#bd93f9', 235, 141],
+    \ 'terminal':     ['#282a36', '#8be9fd', 235, 117],
+    \ 'tabline':      ['#6272a4', 'NONE',    61,  'NONE'],
+    \ 'tabline_sel':  ['#bd93f9', 'NONE',    141, 'NONE'],
+    \ 'tabline_fill': ['#6272a4', 'NONE',    61,  'NONE'],
+  \ }
+<
+Partial override (only change some modes; rest keep Dracula defaults): >
+  let g:tabs_vim_colors = {
+    \ 'normal': ['#282828', '#d79921', 235, 172],
+    \ 'insert': ['#282828', '#b8bb26', 235, 142],
+  \ }
+<
+==============================================================================
+7. License                                                 *tabs.vim-license*
+
+MIT License. See LICENSE in the repository root.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
