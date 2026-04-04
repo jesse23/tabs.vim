@@ -76,6 +76,31 @@ The confusion deepens when users try split windows. Modern editors and Vim have 
 - **Surprise**: The split layout in the first tab doesn't carry over—new tab has single window
 - **Result**: Users feel like Vim splits are "temporary" or "tied to a context" when they're actually window layout within a tab
 
+### Terminal Concept: Tab vs Split
+
+Modern editors and Vim diverge again on terminal management:
+
+| Concept | Modern Editor (VSCode) | Vim |
+|---------|---|---|
+| **Terminal location** | Integrated panel at **bottom of editor** (or side); separate from file tabs | Terminal opens as a **buffer in a window**—just like any other file |
+| **Multiple terminals** | Multiple terminal panes in bottom panel; switcher shows all terminals | Multiple terminal buffers (`:term`), each takes a window; need to manage via `:ls` or fuzzy find |
+| **Terminal persistence** | Terminal output stays visible (bottom panel remains open) | Terminal hidden when switching tabs or windows; must `:term` or `:b` back |
+| **Context switching** | Click tab → see terminal simultaneously | Click new tab → terminal disappears from view; need separate window split to keep visible |
+| **Workflow** | Work in file tab, glance at terminal without switching | Edit file in one window, terminal in another window (same tab), or use `:term` popup |
+
+**The Mental Model Clash:**
+- Modern editors: "Terminal is a **persistent widget** at the bottom, always accessible"
+- Vim: "Terminal is a **buffer like any other**, competes for window space in your tab layout"
+
+**Example Frustration:**
+- User in tab 1 with file editor, running `:term` to execute commands
+- User switches to tab 2 to edit another file
+- **Surprise**: Terminal disappeared (it was in tab 1's window layout)
+- User must either: keep terminal in a split window in every tab, or `:term` every time they need it
+- **Result**: Vim terminal workflow feels fragmented compared to editor's "always-on" panel
+
+This is why `tabs.vim` supporting terminal operations (opening terminal in new tab) bridges a conceptual gap—it lets users treat terminal sessions as "tabs" (persistent contexts) rather than "buffers" (hidden unless explicitly switched to).
+
 ### Why This Matters
 
 This hierarchy works *against* modern editor intuitions:
