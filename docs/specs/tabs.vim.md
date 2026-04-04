@@ -129,7 +129,38 @@ Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimple
 All keybindings are configurable. Users can disable features (e.g., if they don't use tabs) without source code changes.
 
 **4. Integrated Theming**  
-Dracula color scheme integration built-in; tab bar includes mode indicator (Normal/Insert/Visual/Replace/Command/Terminal) with context-aware highlighting.
+Dracula color scheme is the built-in default; tab bar includes mode indicator (Normal/Insert/Visual/Replace/Command/Terminal) with context-aware highlighting. Users may override any or all mode colors via `g:tabs_vim_colors`.
+
+### Color Configuration Contract
+
+Mode colors are configurable via the `g:tabs_vim_colors` global dict. Each key is a lowercase mode name; each value is a four-element list `[guifg, guibg, ctermfg, ctermbg]`. Unspecified modes fall back to the built-in Dracula defaults. The dict is read once at plugin load time (after `colorscheme` is applied).
+
+**Supported keys:** `normal`, `insert`, `visual`, `replace`, `command`, `terminal`
+
+**Default (Dracula palette):**
+
+```vim
+let g:tabs_vim_colors = {
+  \ 'normal':   ['#282a36', '#bd93f9', 235, 141],
+  \ 'insert':   ['#282a36', '#50fa7b', 235, 84 ],
+  \ 'visual':   ['#282a36', '#ffb86c', 235, 215],
+  \ 'replace':  ['#282a36', '#ff5555', 235, 203],
+  \ 'command':  ['#282a36', '#bd93f9', 235, 141],
+  \ 'terminal': ['#282a36', '#8be9fd', 235, 117],
+\ }
+```
+
+**Partial override example (gruvbox-style):**
+
+```vim
+" Only change normal and insert; other modes keep Dracula defaults
+let g:tabs_vim_colors = {
+  \ 'normal': ['#282828', '#d79921', 235, 172],
+  \ 'insert': ['#282828', '#b8bb26', 235, 142],
+\ }
+```
+
+**Design rationale:** This format is borrowed from lightline.vim's palette convention — compact, no named theme indirection, trivially composable. See ADR-002 for alternatives considered.
 
 ---
 
@@ -175,7 +206,7 @@ Dracula color scheme integration built-in; tab bar includes mode indicator (Norm
 | **Direct Tab Jump** | Jump to tab 1-9 with `<leader>[1-9]` | ⬜ | — |
 | **Tab Creation** | Create new tab with `<leader>wt`, via file picker with `<leader>ft` | ⬜ | — |
 | **Tab Closing** | Close current tab or all but current with `<leader>x` / `<leader>X` | ⬜ | — |
-| **Tab Appearance** | Dracula theme integration, minimal visual overhead | ⬜ | — |
+| **Tab Appearance** | Dracula default theme; user-configurable colors via `g:tabs_vim_colors` | ⬜ | ADR-002 |
 | **File Tree Integration** | Open files in tabs from Fern file browser (`t` key) | ⬜ | — |
 | **Git Integration** | Open git-related output (diffs, logs) in tabs | ⬜ | — |
 | **Terminal in Tabs** | Spawn terminal windows in new tabs (separate from splits) | ⬜ | — |
