@@ -24,17 +24,57 @@ Modern IDEs organize code into tabs for a reason: **context switching is faster 
 
 ## Problem Statement
 
+### Vim's Confusing Hierarchy: Buffer, Window, Tab
+
+Vim's three-tier abstraction is powerful but creates cognitive friction:
+
+| Concept | Definition | Lifespan | Visibility |
+|---------|-----------|----------|-----------|
+| **Buffer** | In-memory representation of file content | Until explicitly deleted | Hidden (not shown in UI) |
+| **Window** | Viewport into a buffer; shows one buffer at a time | Until closed; buffer persists | Shown on screen (split panes) |
+| **Tab** | Collection of one or more windows; workspace context | Until closed | One tab visible at a time |
+
+**The Ambiguity Problem:**
+- Buffers are *invisible* but *persistent* — users don't see them in the UI, yet they're the fundamental unit
+- Windows are *visible* but *tied to tabs* — opening a split in tab A doesn't affect tab B's layout
+- Tabs *group windows* but are *optional* — many users never touch them, unaware tabs exist
+- Modern editors use "tab" to mean "open file" (buffer in Vim), but Vim's "tab" means "workspace"
+
+### Why This Matters
+
+This hierarchy works *against* modern editor intuitions:
+
+1. **User expectation**: "Open file in a tab" → should be simple, it's not
+   - Naive approach: `tabedit file.txt` (correct, but obscure)
+   - What users try: `split file.txt` (opens in current window, not in new tab)
+   - Result: Confusion about what "tab" means
+
+2. **Context loss**: Tabs hide content, not consolidate it
+   - In VSCode/IDE: All tabs visible in one row (quick scan)
+   - In Vim: Only one tab visible; other tabs' content is hidden
+   - Result: Tabs feel like "hidden workspaces" not "open files"
+
+3. **Unnecessary indirection**: Modern users want to *think about files*, not *workspaces*
+   - Vim users who work in Vim+tmux circumvent this: one tmux window per logical project section
+   - Vim users who use buffers only skip tabs entirely, use `:b` or fuzzy finder
+   - Result: Tabs are relegated to power users or ignored completely
+
+### Current Vim Tab Workflow Pain Points
+
 Out of the box, Vim's tab workflow requires:
-- `gt` / `gT` to switch (non-standard, hard to remember)
-- `:tabnew` or `:[N]tabnext` for most operations (verbose)
-- No visual affordance that tabs are a primary navigation method
+- `gt` / `gT` to switch (non-standard navigation commands)
+- `:tabnew` or `:[N]tabnext` for most operations (verbose, not discoverable)
+- No visual affordance that tabs can be a primary navigation method
 - Tab indicator styling conflicts with popular color schemes
+- No quick jump-to-tab-N (each tab lacks a visible number)
+- Tab page line takes precious vertical space but shows minimal information
 
 **User Pain Points:**
-1. Inefficient switching between multiple open files
-2. Context loss when closing or reordering tabs
-3. No quick way to navigate directly to tab N
-4. Terminal integration doesn't expose tab state clearly
+1. **Inefficient file switching** — Discovering which tab contains which file requires cycling through tabs visually
+2. **Context fragmentation** — Tab state (window layout, cursor position) is hidden; users lose orientation
+3. **No direct tab access** — Jumping to a specific open file requires Tab+Tab+Tab or remembering tab number + `:Ntabnext`
+4. **Conflicting mental models** — Vim's "tab as workspace" clashes with modern "tab as file" expectation
+5. **Poor discoverability** — Which-Key and other help systems don't naturally expose tab commands
 
 ---
 
