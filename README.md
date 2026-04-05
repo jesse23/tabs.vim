@@ -1,11 +1,12 @@
 # tabs.vim
 
-A lightweight Vim plugin that replaces the native tabline with a clean, mode-aware bar: numbered tabs on the left, a color-coded mode pill on the right. Also handles split terminals, tab/window management, and file-drop support.
+A lightweight Vim plugin that replaces the native tabline with a clean, mode-aware bar: numbered tabs on the left, a color-coded mode pill on the right. Exposes public functions for terminal toggling, window management, and ecosystem integrations — no keybindings installed out of the box.
 
 ## Requirements
 
 - Vim 8.2+ or Neovim 0.7+
 - Optional: [junegunn/fzf.vim](https://github.com/junegunn/fzf.vim) for file-picker integration
+- Optional: [vim-flog](https://github.com/rbong/vim-flog) for git log integration
 
 ## Installation
 
@@ -13,33 +14,60 @@ A lightweight Vim plugin that replaces the native tabline with a clean, mode-awa
 Plug 'jesse23/tabs.vim'
 ```
 
-## Keybindings
+## Setup
 
-**Tab navigation**
-- `<Tab>` / `<S-Tab>` — next / previous tab
-- `<leader>1`–`<leader>9` — jump to tab by number
+The plugin installs **no keybindings** by default — add the ones you want to your `vimrc`. Copy and adapt the block below:
 
-**Tab management**
-- `<leader>wt` — new empty tab
-- `<leader>ft` — open file in new tab via fzf
-- `<leader>x` / `<leader>X` — close window / close all other tabs
-- `gF` — open file under cursor in new tab
+```vim
+" ── Tab navigation ────────────────────────────────────────────────────────────
+" Native: gt / gT / <count>gt — no plugin binding needed.
+nnoremap <silent> <leader>wt :tabnew<CR>
+nnoremap <silent> <leader>x  :call TabsVim_CloseOrHide()<CR>
+nnoremap <silent> <leader>X  :tabonly<CR>
 
-**Splits & windows**
-- `<leader>ws` / `<leader>wv` — horizontal / vertical split
-- `<leader>wm` — maximize (close other windows)
+" Direct tab jumps: <leader>1 … <leader>9
+for s:i in range(1, 9)
+  execute 'nnoremap <silent> <leader>' . s:i . ' ' . s:i . 'gt'
+endfor
 
-**Buffer ops**
-- `<leader>wr` — rename current buffer
-- `<leader>fy` — copy file path to clipboard
+" ── Window / split ────────────────────────────────────────────────────────────
+nnoremap <silent> <leader>ws :sp<CR>
+nnoremap <silent> <leader>wv :vsp<CR>
+nnoremap <silent> <leader>wm :only<CR>
+nnoremap <silent> <leader>wr :call TabsVim_RenameBuffer()<CR>
 
-**Terminals**
-- `<leader>h` / `<leader>ts` — toggle horizontal split terminal (15 lines)
-- `<leader>tv` — toggle vertical split terminal (80 cols)
-- `<leader>tt` — open terminal in new tab
-- `<C-]>` — enter terminal mode; `<Esc>` or `<C-]>` — exit
+" ── Terminal ──────────────────────────────────────────────────────────────────
+nnoremap <silent> <leader>ts :call TabsVim_ToggleHorizTerm()<CR>
+nnoremap <silent> <leader>tv :call TabsVim_ToggleVertTerm()<CR>
+nnoremap <silent> <leader>tt :call TabsVim_NewTabTerm()<CR>
+tnoremap          <C-]>      <C-\><C-n>   " exit terminal mode
 
-**File drop** — drag a file from Finder onto the terminal to open it in a new tab (requires bracketed-paste, e.g. iTerm2).
+" ── File operations ───────────────────────────────────────────────────────────
+nnoremap <silent> gF         :tabedit <cfile><CR>
+nnoremap <silent> <leader>fy :let @+ = expand("%:p")<CR>
+nnoremap <silent> <leader>ft :call TabsVim_FzfOpenInTab()<CR>
+
+" ── Git log ───────────────────────────────────────────────────────────────────
+nnoremap <silent> <leader>gg :call TabsVim_FlogInTab()<CR>
+
+" ── Ecosystem buffer close (q → :tabclose) ───────────────────────────────────
+" Must be set before the plugin loads/is sourced (e.g. before plug#end() when using vim-plug).
+let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
+```
+
+**File drop** — drag a file from Finder onto the terminal to open it in a new tab (requires bracketed-paste, e.g. iTerm2). This is the only behavior installed automatically.
+
+## Public API
+
+| Function | Description |
+|----------|-------------|
+| `TabsVim_ToggleHorizTerm()` | Toggle persistent horizontal split terminal (below, 15 rows) |
+| `TabsVim_ToggleVertTerm()` | Toggle persistent vertical split terminal (right, 80 cols) |
+| `TabsVim_NewTabTerm()` | Open a new terminal in its own tab |
+| `TabsVim_CloseOrHide()` | Close window; if last window prompt to quit; if terminal, hide it |
+| `TabsVim_RenameBuffer()` | Prompt to rename the current buffer |
+| `TabsVim_FzfOpenInTab()` | Open fzf file picker with `tabedit` as the sink (requires fzf.vim) |
+| `TabsVim_FlogInTab()` | Open vim-flog git log in a new tab (requires vim-flog) |
 
 ## Configuration
 
