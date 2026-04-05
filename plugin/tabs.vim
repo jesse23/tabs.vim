@@ -18,8 +18,6 @@ let s:vterm_bufnr = -1
 " TERMINAL: Split terminals & new tab terminal
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" Toggle split terminal: below/horizontal (<leader>h, <leader>ts)
-" or vertical (<leader>tv)
 function! s:ToggleTerm(bufvar, open_cmd, resize_cmd) abort
   let bufnr = eval(a:bufvar)
   for w in range(1, winnr('$'))
@@ -37,22 +35,18 @@ function! s:ToggleTerm(bufvar, open_cmd, resize_cmd) abort
   execute a:resize_cmd
 endfunction
 
-nnoremap <silent> <leader>h  :call <SID>ToggleTerm('s:term_bufnr',  'below',    'resize 15')<CR>
-nnoremap <silent> <leader>ts :call <SID>ToggleTerm('s:term_bufnr',  'below',    'resize 15')<CR>
-nnoremap <silent> <leader>tv :call <SID>ToggleTerm('s:vterm_bufnr', 'vertical', 'vertical resize 80')<CR>
+function! TabsVim_ToggleHorizTerm() abort
+  call s:ToggleTerm('s:term_bufnr', 'below', 'resize 15')
+endfunction
 
-" New tab terminal (<leader>tt)
-function! s:NewTabTerm() abort
+function! TabsVim_ToggleVertTerm() abort
+  call s:ToggleTerm('s:vterm_bufnr', 'vertical', 'vertical resize 80')
+endfunction
+
+function! TabsVim_NewTabTerm() abort
   tab term
   setlocal nobuflisted
 endfunction
-nnoremap <silent> <leader>tt :call <SID>NewTabTerm()<CR>
-
-" Terminal mode mappings
-tnoremap <Esc>  <Esc>
-tnoremap <C-]>  <C-\><C-n>
-nnoremap <C-]>  i
-inoremap <C-]>  <Esc>
 
 " Terminal settings
 augroup TermSettings
@@ -73,30 +67,12 @@ function! s:ResizeTerminals() abort
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" WINDOWS & BUFFERS: Tab navigation, creation, closing
+" WINDOWS & BUFFERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" Tab navigation: <Tab> next, <S-Tab> prev
-nnoremap <silent> <Tab>      :tabnext<CR>
-nnoremap <silent> <S-Tab>    :tabprev<CR>
-
-" Window/split operations
-nnoremap <silent> <leader>ws :sp<CR>
-nnoremap <silent> <leader>wv :vsp<CR>
-nnoremap <silent> <leader>wm :only<CR>
-
-" Buffer operations
-nnoremap <silent> <leader>wr :call <SID>RenameBuffer()<CR>
-nnoremap <silent> <leader>wb :Buffers<CR>
-
-" Tab operations
-nnoremap <silent> <leader>wt :tabnew<CR>
-nnoremap <silent> <leader>x  :call <SID>CloseOrHideSplit()<CR>
-nnoremap <silent> <leader>X  :tabonly<CR>
-
-" Close window or terminal, with prompt to quit if it's the last window
-function! s:CloseOrHideSplit() abort
-  if winnr('$') == 1
+" Close window or terminal, with prompt to quit if it's the last window in the last tab
+function! TabsVim_CloseOrHide() abort
+  if tabpagenr('$') == 1 && winnr('$') == 1
     if confirm('Quit Vim?', "&Yes\n&No", 2) == 1
       qall!
     endif
@@ -106,8 +82,10 @@ function! s:CloseOrHideSplit() abort
   if &buftype ==# 'terminal'
     if bufnr('%') == s:vterm_bufnr
       call s:ToggleTerm('s:vterm_bufnr', 'vertical', 'vertical resize 80')
-    else
+    elseif bufnr('%') == s:term_bufnr
       call s:ToggleTerm('s:term_bufnr', 'below', 'resize 15')
+    else
+      close
     endif
   else
     close
@@ -115,7 +93,7 @@ function! s:CloseOrHideSplit() abort
 endfunction
 
 " Rename current buffer
-function! s:RenameBuffer() abort
+function! TabsVim_RenameBuffer() abort
   let l:new_name = input('Rename buffer: ', expand('%:t'))
   if empty(l:new_name)
     return
@@ -123,14 +101,18 @@ function! s:RenameBuffer() abort
   execute 'file ' . fnameescape(l:new_name)
 endfunction
 
-" Copy file path to clipboard
-nnoremap <silent> <leader>fy :let @+ = expand("%:p")<CR>
-
-" gF: open file-under-cursor in a new tab (extends built-in gf)
-nnoremap <silent> gF :tabedit <cfile><CR>
-
-" <leader>r: redo
-nnoremap <silent> <leader>r  <Cmd>redo<CR>
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" FZF Integration: Open files in tabs
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+function! TabsVim_FzfOpenInTab() abort
+  if !exists('*fzf#vim#files') || !exists('*fzf#vim#with_preview')
+    echohl WarningMsg
+    echo 'tabs.vim: TabsVim_FzfOpenInTab requires fzf.vim (fzf#vim#files not available)'
+    echohl None
+    return
+  endif
+  call fzf#vim#files('', fzf#vim#with_preview({'sink': 'tabedit'}), 0)
+endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " DRAG-AND-DROP: Drop a file path onto the terminal → open in new tab
@@ -289,22 +271,3 @@ if exists('##ModeChanged')
     autocmd ModeChanged * redrawtabline
   augroup END
 endif
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Direct Tab Jump: <leader>[1-9] to jump to tab N
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-nnoremap <silent> <leader>1  :1tabnext<CR>
-nnoremap <silent> <leader>2  :2tabnext<CR>
-nnoremap <silent> <leader>3  :3tabnext<CR>
-nnoremap <silent> <leader>4  :4tabnext<CR>
-nnoremap <silent> <leader>5  :5tabnext<CR>
-nnoremap <silent> <leader>6  :6tabnext<CR>
-nnoremap <silent> <leader>7  :7tabnext<CR>
-nnoremap <silent> <leader>8  :8tabnext<CR>
-nnoremap <silent> <leader>9  :9tabnext<CR>
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" FZF Integration: Open files in tabs
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" <leader>ft: Open file in tab via fzf
-nnoremap <silent> <leader>ft :call fzf#vim#files('', fzf#vim#with_preview({'sink': 'tabedit'}), 0)<CR>
