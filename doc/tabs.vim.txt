@@ -7,24 +7,32 @@ CONTENTS                                                    *tabs.vim-contents*
   2. Requirements ......................... |tabs.vim-requirements|
   3. Installation ......................... |tabs.vim-installation|
   4. Tabline .............................. |tabs.vim-tabline|
-  5. Keybindings .......................... |tabs.vim-keybindings|
+  5. Setup ................................ |tabs.vim-setup|
+     5.1 Public Functions ................. |tabs.vim-functions|
+     5.2 Recommended vimrc ................ |tabs.vim-vimrc|
   6. Configuration ........................ |tabs.vim-config|
      6.1 Mode Style ....................... |tabs.vim-mode-style|
      6.2 Colors ........................... |tabs.vim-colors|
+     6.3 Ecosystem Buffer Close ........... |tabs.vim-tabclose|
   7. License .............................. |tabs.vim-license|
 
 ==============================================================================
 1. Introduction                                               *tabs.vim-intro*
 
 tabs.vim replaces Vim's native tabline with a clean, mode-aware bar: open
-tabs on the left, a color-coded mode pill on the right. It also provides
-keybindings for tab/window management, split terminals, and file-drop support.
+tabs on the left, a color-coded mode pill on the right. It exposes public
+functions for terminal toggling, window management, and ecosystem integrations.
+
+The plugin installs no keybindings out of the box — users wire the functions
+they want to their preferred keys. The only automatic behavior is mouse
+drag-and-drop file opening (see |tabs.vim-setup|).
 
 ==============================================================================
 2. Requirements                                        *tabs.vim-requirements*
 
 - Vim 8.2+ or Neovim 0.7+
-- Optional: junegunn/fzf.vim (for |<leader>ft|)
+- Optional: junegunn/fzf.vim (for |TabsVim_FzfOpenInTab()|)
+- Optional: vim-flog (for |TabsVim_FlogInTab()|)
 
 ==============================================================================
 3. Installation                                        *tabs.vim-installation*
@@ -52,40 +60,97 @@ Mode labels~
   T        Terminal
 
 ==============================================================================
-5. Keybindings                                          *tabs.vim-keybindings*
+5. Setup                                                      *tabs.vim-setup*
 
-Tab navigation~
-  <Tab>           Next tab
-  <S-Tab>         Previous tab
-  <leader>1-9     Jump to tab 1–9
+The plugin installs no user-facing keybindings. Vim's native `gt`, `gT`, and
+`<count>gt` cover tab navigation without any plugin binding.
 
-Tab management~
-  <leader>wt      New empty tab
-  <leader>ft      Open file in new tab via fzf (requires fzf.vim)
-  <leader>x       Close window (or toggle terminal; quit prompt if last window)
-  <leader>X       Close all tabs except current
-  gF              Open file under cursor in new tab
+The one automatic behavior is file drag-and-drop: dropping a file from a file
+manager (e.g. Finder) onto the terminal opens it in a new tab. This requires
+bracketed-paste support (e.g. iTerm2) and activates only in terminal Vim (not
+GVim) on Vim 8.0.0210+.
 
-Window splits~
-  <leader>ws      Horizontal split
-  <leader>wv      Vertical split
-  <leader>wm      Maximize (close other windows)
-
-Buffer operations~
-  <leader>wr      Rename current buffer
-  <leader>fy      Copy full file path to clipboard
+------------------------------------------------------------------------------
+5.1 Public Functions                                      *tabs.vim-functions*
 
 Terminal~
-  <leader>h       Toggle horizontal split terminal (15 lines)
-  <leader>ts      Toggle horizontal split terminal (alias)
-  <leader>tv      Toggle vertical split terminal (80 cols)
-  <leader>tt      Open terminal in new tab
-  <C-]>           Enter terminal mode (normal→terminal)
-  <Esc> / <C-]>   Exit terminal mode
+                                                   *TabsVim_ToggleHorizTerm()*
+TabsVim_ToggleHorizTerm()
+    Toggle a persistent horizontal split terminal (below, 15 rows).
 
-File drop~
-  Drag a file from Finder/Explorer onto the terminal — it opens in a new tab.
-  Requires bracketed-paste support (e.g. iTerm2).
+                                                    *TabsVim_ToggleVertTerm()*
+TabsVim_ToggleVertTerm()
+    Toggle a persistent vertical split terminal (right, 80 cols).
+
+                                                        *TabsVim_NewTabTerm()*
+TabsVim_NewTabTerm()
+    Open a new terminal in its own tab.
+
+Window / Buffer~
+                                                      *TabsVim_CloseOrHide()*
+TabsVim_CloseOrHide()
+    Close the current window. If it is the last window in the last tab,
+    prompt to quit Vim. If it is a managed terminal buffer, toggle-hide it
+    instead of closing.
+
+                                                     *TabsVim_RenameBuffer()*
+TabsVim_RenameBuffer()
+    Prompt to rename the current buffer.
+
+Ecosystem~
+                                                     *TabsVim_FzfOpenInTab()*
+TabsVim_FzfOpenInTab()
+    Open the fzf file picker with `tabedit` as the sink. Requires fzf.vim.
+
+                                                        *TabsVim_FlogInTab()*
+TabsVim_FlogInTab()
+    Open vim-flog full-repo git log in a new tab. Requires vim-flog.
+
+------------------------------------------------------------------------------
+5.2 Recommended vimrc                                       *tabs.vim-vimrc*
+
+Copy and adapt the block below. Remove any line you don't use. >
+
+  " ── Tab navigation ──────────────────────────────────────────────────────────
+  " Native: gt / gT / <count>gt — no plugin binding needed.
+  nnoremap <silent> <leader>wt :tabnew<CR>
+  nnoremap <silent> <leader>x  :call TabsVim_CloseOrHide()<CR>
+  nnoremap <silent> <leader>X  :tabonly<CR>
+
+  " Direct tab jumps: <leader>1 … <leader>9
+  for s:i in range(1, 9)
+    execute 'nnoremap <silent> <leader>' . s:i . ' ' . s:i . 'gt'
+  endfor
+
+  " ── Window / split ──────────────────────────────────────────────────────────
+  nnoremap <silent> <leader>ws :sp<CR>
+  nnoremap <silent> <leader>wv :vsp<CR>
+  nnoremap <silent> <leader>wm :only<CR>
+  nnoremap <silent> <leader>wr :call TabsVim_RenameBuffer()<CR>
+
+  " ── Terminal ────────────────────────────────────────────────────────────────
+  nnoremap <silent> <leader>ts :call TabsVim_ToggleHorizTerm()<CR>
+  nnoremap <silent> <leader>tv :call TabsVim_ToggleVertTerm()<CR>
+  nnoremap <silent> <leader>tt :call TabsVim_NewTabTerm()<CR>
+  tnoremap          <C-]>      <C-\><C-n>   " exit terminal mode
+
+  " ── File operations ─────────────────────────────────────────────────────────
+  nnoremap <silent> gF         :tabedit <cfile><CR>
+  nnoremap <silent> <leader>fy :let @+ = expand("%:p")<CR>
+  nnoremap <silent> <leader>ft :call TabsVim_FzfOpenInTab()<CR>
+
+  " ── Git log ─────────────────────────────────────────────────────────────────
+  nnoremap <silent> <leader>gg :call TabsVim_FlogInTab()<CR>
+
+  " ── Ecosystem buffer close (q → :tabclose) ──────────────────────────────────
+  " Must be set before plug#end() — read once at plugin load time.
+  let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
+<
+Note on <C-]> for terminal exit~
+`<C-]>` (sends byte 0x1D) is safe in terminal mode — no default binding
+conflicts. The normal-mode companion `nnoremap <C-]> i` re-enters terminal
+insert mode but overrides the native tag-jump binding. Omit it if you use
+ctags/LSP tag jumping.
 
 ==============================================================================
 6. Configuration                                           *tabs.vim-config*
@@ -149,6 +214,30 @@ Partial override (only change some modes; rest keep Dracula defaults): >
     \ 'insert': ['#282828', '#b8bb26', 235, 142],
   \ }
 <
+------------------------------------------------------------------------------
+6.3 Ecosystem Buffer Close                               *tabs.vim-tabclose*
+                                                  *g:tabs_vim_tabclose_types*
+
+A list of buffer type tokens. For each entry the plugin installs a
+buffer-local `q` → `:tabclose` mapping, so pressing `q` in those buffers
+closes the whole tab — the same mental model as a modal overlay.
+
+Must be set before the plugin loads/is sourced (e.g. before `plug#end()`
+when using vim-plug). Default is empty (no automatic bindings). >
+
+  let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
+<
+Supported values:
+
+  `'floggraph'`  FileType floggraph (vim-flog graph buffer)
+  `'git'`        FileType git (vim-fugitive commit/status buffer)
+  `'diff'`       WinEnter with &diff set (vimdiff / Gdiffsplit)
+
+Any valid FileType name is accepted (e.g. `'fugitiveblame'`).
+
+For `'diff'`, the mapping uses `<expr>` so it re-checks `&diff` at keypress
+time, preventing a stale `q`→tabclose after a buffer leaves diff mode.
+
 ==============================================================================
 7. License                                                 *tabs.vim-license*
 
