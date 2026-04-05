@@ -115,6 +115,34 @@ function! TabsVim_FzfOpenInTab() abort
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ECOSYSTEM: Git log in tab + configurable tabclose types
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+function! TabsVim_FlogInTab() abort
+  if !exists(':Flogsplit')
+    echohl WarningMsg
+    echo 'tabs.vim: TabsVim_FlogInTab requires vim-flog (:Flogsplit not available)'
+    echohl None
+    return
+  endif
+  Flogsplit -open-cmd=tabedit -all
+endfunction
+
+if exists('g:tabs_vim_tabclose_types') && !empty(g:tabs_vim_tabclose_types)
+  augroup TabsVimTabClose
+    autocmd!
+    for s:tabclose_type in g:tabs_vim_tabclose_types
+      if s:tabclose_type ==# 'diff'
+        autocmd WinEnter * if &diff | nnoremap <silent> <buffer> q :tabclose<CR> | endif
+      else
+        execute 'autocmd FileType ' . s:tabclose_type . ' nnoremap <silent> <buffer> q :tabclose<CR>'
+      endif
+    endfor
+    unlet s:tabclose_type
+  augroup END
+endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " DRAG-AND-DROP: Drop a file path onto the terminal → open in new tab
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Requires bracketed-paste support in the terminal (iTerm2, xterm, etc.)

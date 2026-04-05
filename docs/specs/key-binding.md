@@ -47,6 +47,12 @@ Only operations with real logic are exposed as `TabsVim_*` functions. Simple one
 |----------|-------------|
 | `TabsVim_FzfOpenInTab()` | Open fzf file picker with `tabedit` as the sink (requires fzf.vim) |
 
+### Git Integration
+
+| Function | Description |
+|----------|-------------|
+| `TabsVim_FlogInTab()` | Open vim-flog full-repo git log in a new tab (requires vim-flog) |
+
 ---
 
 ## Recommended vimrc Wiring
@@ -80,6 +86,13 @@ nnoremap <silent> <leader>tt :call TabsVim_NewTabTerm()<CR>
 nnoremap <silent> gF         :tabedit <cfile><CR>
 nnoremap <silent> <leader>fy :let @+ = expand("%:p")<CR>
 nnoremap <silent> <leader>ft :call TabsVim_FzfOpenInTab()<CR>
+
+" ── Git log ───────────────────────────────────────────────────────────────────
+nnoremap <silent> <leader>gg :call TabsVim_FlogInTab()<CR>
+
+" ── Ecosystem buffer close (q → :tabclose) ───────────────────────────────────
+" Buffer types/conditions that get q → :tabclose auto-wired. Default is empty.
+let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
 ```
 
 ---
@@ -127,3 +140,4 @@ In normal mode, `<C-]>` is the native "jump to tag under cursor" (ctags / cscope
 | **No OOTB keybindings** | Plugin installs zero keymaps; mouse DnD infrastructure only | ADR-004 | ✅ |
 | **Public function API** | All operations promoted to `TabsVim_*` public functions | ADR-004 | ✅ |
 | **Example vimrc block** | Ready-made mapping block for users to copy into vimrc | — | ✅ |
+| **Ecosystem integrations** | `TabsVim_FlogInTab()` and `g:tabs_vim_tabclose_types` config | ADR-005 | ⬜ |
