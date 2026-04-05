@@ -258,6 +258,7 @@ let g:tabs_vim_colors = {
 ## Related Specs
 
 - [key-binding.md](key-binding.md) — public `TabsVim_*` function API, OOTB behavior contract, and recommended vimrc wiring
+- [ecosystem-support.md](ecosystem-support.md) — tab-aware integrations for fzf, vim-flog, vim-fugitive, and vimdiff
 
 ---
 

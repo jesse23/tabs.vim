@@ -9,14 +9,11 @@ let g:tabs_vim_loaded = 1
 " Principles: Locality, Discoverability, Speed, Integration
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Terminal State (for split terminal toggle)
+" TERMINAL
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 let s:term_bufnr  = -1
 let s:vterm_bufnr = -1
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" TERMINAL: Split terminals & new tab terminal
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 function! s:ToggleTerm(bufvar, open_cmd, resize_cmd) abort
   let bufnr = eval(a:bufvar)
@@ -48,17 +45,6 @@ function! TabsVim_NewTabTerm() abort
   setlocal nobuflisted
 endfunction
 
-" Terminal settings
-augroup TermSettings
-  autocmd!
-  " No line numbers in terminal windows
-  autocmd TerminalOpen,BufEnter,WinEnter * if &buftype ==# 'terminal' | setlocal nonumber norelativenumber | endif
-  " Resize terminal buffers when vim window size changes
-  autocmd VimResized * call s:ResizeTerminals()
-  " Keep newly opened terminals in the current working directory
-  autocmd TerminalOpen * call term_sendkeys(bufnr(''), 'cd ' . shellescape(getcwd()) . "\n")
-augroup END
-
 function! s:ResizeTerminals() abort
   for buf in term_list()
     let w = bufwinnr(buf)
@@ -66,11 +52,18 @@ function! s:ResizeTerminals() abort
   endfor
 endfunction
 
+augroup TabsVimTerminal
+  autocmd!
+  autocmd TerminalOpen,BufEnter,WinEnter * if &buftype ==# 'terminal' | setlocal nonumber norelativenumber | endif
+  autocmd VimResized                     * call s:ResizeTerminals()
+  autocmd TerminalOpen                   * call term_sendkeys(bufnr(''), 'cd ' . shellescape(getcwd()) . "\n")
+augroup END
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" WINDOWS & BUFFERS
+" WINDOW / BUFFER
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" Close window or terminal, with prompt to quit if it's the last window in the last tab
+" Close window or terminal; prompt to quit if it's the last window in the last tab
 function! TabsVim_CloseOrHide() abort
   if tabpagenr('$') == 1 && winnr('$') == 1
     if confirm('Quit Vim?', "&Yes\n&No", 2) == 1
@@ -92,7 +85,6 @@ function! TabsVim_CloseOrHide() abort
   endif
 endfunction
 
-" Rename current buffer
 function! TabsVim_RenameBuffer() abort
   let l:new_name = input('Rename buffer: ', expand('%:t'))
   if empty(l:new_name)
@@ -102,8 +94,10 @@ function! TabsVim_RenameBuffer() abort
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" FZF Integration: Open files in tabs
+" ECOSYSTEM
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" fzf: open file picker with tabedit as the sink
 function! TabsVim_FzfOpenInTab() abort
   if !exists('*fzf#vim#files') || !exists('*fzf#vim#with_preview')
     echohl WarningMsg
@@ -114,27 +108,69 @@ function! TabsVim_FzfOpenInTab() abort
   call fzf#vim#files('', fzf#vim#with_preview({'sink': 'tabedit'}), 0)
 endfunction
 
+" vim-flog: open full-repo git log in a new tab
+function! TabsVim_FlogInTab() abort
+  if !exists(':Flogsplit')
+    echohl WarningMsg
+    echo 'tabs.vim: TabsVim_FlogInTab requires vim-flog (:Flogsplit not available)'
+    echohl None
+    return
+  endif
+  Flogsplit -open-cmd=tabedit -all
+endfunction
+
+" g:tabs_vim_tabclose_types: wire q → :tabclose for specified buffer types.
+" Must be set before the plugin loads. Supported tokens: 'floggraph', 'git',
+" 'diff', or any FileType name matching ^\h\w*$.
+if exists('g:tabs_vim_tabclose_types')
+  if type(g:tabs_vim_tabclose_types) != type([])
+    echohl WarningMsg
+    echo 'tabs.vim: g:tabs_vim_tabclose_types must be a List of strings; skipping'
+    echohl None
+  else
+    let s:tabclose_types = filter(copy(g:tabs_vim_tabclose_types),
+          \ 'type(v:val) == type("") && !empty(v:val)')
+    if !empty(s:tabclose_types)
+      augroup TabsVimTabClose
+        autocmd!
+        for s:tabclose_type in s:tabclose_types
+          if s:tabclose_type ==# 'diff'
+            " Use <expr> so the mapping re-checks &diff at keypress time;
+            " prevents stale q→tabclose after a buffer leaves diff mode.
+            autocmd WinEnter * if &diff | nnoremap <silent> <expr> <buffer> q (&diff ? "\<Cmd>tabclose\<CR>" : 'q') | endif
+          elseif s:tabclose_type =~# '^\h\w*\%(,\h\w*\)*$'
+            execute 'autocmd FileType ' . s:tabclose_type . ' nnoremap <silent> <buffer> q :tabclose<CR>'
+          else
+            echohl WarningMsg
+            echo 'tabs.vim: ignoring invalid tabclose type: ' . string(s:tabclose_type)
+            echohl None
+          endif
+        endfor
+        unlet s:tabclose_type
+      augroup END
+    endif
+    unlet s:tabclose_types
+  endif
+endif
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" DRAG-AND-DROP: Drop a file path onto the terminal → open in new tab
+" DRAG AND DROP
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Requires bracketed-paste support in the terminal (iTerm2, xterm, etc.)
-" Drag a file from Finder/Explorer → terminal sends ESC[200~path ESC[201~
+
+" Drop a file path onto the terminal → open in new tab.
+" Requires bracketed-paste support (iTerm2, xterm, etc.).
+" Activates only in terminal Vim (not GVim) on Vim 8.0.0210+.
 if has('patch-8.0.0210') && !has('gui_running')
   let &t_BE = "\e[?2004h"   " enable bracketed paste on Vim entry
   let &t_BD = "\e[?2004l"   " disable on Vim exit
   exec "set <F30>=\e[200~"
   exec "set <F31>=\e[201~"
 
-  " Normal mode: intercept bracket-paste start, collect path, open in new tab
-  nnoremap <F30> <Cmd>call <SID>HandleFileDrop()<CR>
-
-  " Insert mode: swallow paste markers
-  inoremap <F30> <nop>
-  inoremap <F31> <nop>
-
-  " Command mode: silently swallow the markers so pasted text is clean
-  cnoremap <F30> <nop>
-  cnoremap <F31> <nop>
+  nnoremap <F30>  <Cmd>call <SID>HandleFileDrop()<CR>
+  inoremap <F30>  <nop>
+  inoremap <F31>  <nop>
+  cnoremap <F30>  <nop>
+  cnoremap <F31>  <nop>
 
   function! s:HandleFileDrop() abort
     let text = ''
@@ -153,12 +189,12 @@ if has('patch-8.0.0210') && !has('gui_running')
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Tab bar — replaces status line: mode (left) | tabs (center) | position (right)
+" TAB BAR
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" ══════════════════════════════════════════════════════════════════════════════
-" MODE COLORS — override any mode via g:tabs_vim_colors (see docs/specs/tabs.vim.md)
-" Each entry: [guifg, guibg, ctermfg, ctermbg]
+" ── Colors ────────────────────────────────────────────────────────────────────
+" Override any key via g:tabs_vim_colors: [guifg, guibg, ctermfg, ctermbg]
+
 let s:tabs_vim_defaults = {
   \ 'normal':       ['#282a36', '#bd93f9', 235, 141],
   \ 'insert':       ['#282a36', '#50fa7b', 235, 84 ],
@@ -198,18 +234,17 @@ function! s:ApplyColors() abort
 endfunction
 
 call s:ApplyColors()
-" ══════════════════════════════════════════════════════════════════════════════
 
-set showtabline=2
+" ── Rendering ─────────────────────────────────────────────────────────────────
 
 function! TabsVim_ModeName() abort
   let l:map = {
     \ 'n':    'N',  'no':   'N·OP',
     \ 'i':    'I',  'ic':   'INSERT',  'ix': 'INSERT',
-    \ 'R':    'R', 'Rc':   'REPLACE',
+    \ 'R':    'R',  'Rc':   'REPLACE',
     \ 'v':    'V',  'V':    'V·LINE',  "\<C-v>": 'V·BLOCK',
     \ 's':    'S',  'S':    'S·LINE',  "\<C-s>": 'S·BLOCK',
-    \ 'c':    'C', 't':    'T'
+    \ 'c':    'C',  't':    'T'
   \ }
   return get(l:map, mode(), mode())
 endfunction
@@ -234,10 +269,10 @@ function! TabsVim_ModeStyle() abort
 endfunction
 
 function! TabsVim_Line() abort
-  let l:hls = TabsVim_ModeHl()   " [pill_hl, sel_tab_hl]
+  let l:hls   = TabsVim_ModeHl()
   let l:style = TabsVim_ModeStyle()
   let l:sel_hl = l:style ==# 'mode' ? '%#TabLineSel#' : l:hls[1]
-  " ── Left: tabs (%NT = native Vim click-to-switch + drag)
+
   let s = ''
   for t in range(1, tabpagenr('$'))
     let buflist = tabpagebuflist(t)
@@ -251,7 +286,6 @@ function! TabsVim_Line() abort
     if t < tabpagenr('$') | let s .= '%#TabLineFill#│' | endif
   endfor
 
-  " ── Right: mode block ───────────────────────────────────────────────────────
   if l:style !=# 'tabs'
     let s .= '%T%=' . l:hls[0] . ' ' . TabsVim_ModeName() . ' '
   endif
@@ -259,9 +293,11 @@ function! TabsVim_Line() abort
   return s
 endfunction
 
+set showtabline=2
 set tabline=%!TabsVim_Line()
 
-" Refresh tabline on mode change and cursor movement
+" ── Refresh ───────────────────────────────────────────────────────────────────
+
 augroup TabsVimRefresh
   autocmd!
   autocmd InsertEnter,InsertLeave,CursorMoved,CursorMovedI,WinEnter * redrawtabline
