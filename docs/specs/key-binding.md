@@ -91,7 +91,7 @@ nnoremap <silent> <leader>ft :call TabsVim_FzfOpenInTab()<CR>
 nnoremap <silent> <leader>gg :call TabsVim_FlogInTab()<CR>
 
 " ── Ecosystem buffer close (q → :tabclose) ───────────────────────────────────
-" Buffer types/conditions that get q → :tabclose auto-wired. Default is empty.
+" Must be set before plug#end() — read once at plugin load time.
 let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
 ```
 

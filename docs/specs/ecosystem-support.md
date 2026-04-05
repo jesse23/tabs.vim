@@ -44,7 +44,7 @@ No function — controlled by config only (see below).
 A list of buffer type tokens. For each entry the plugin installs a buffer-local `q` → `:tabclose` mapping. Default is empty (no OOTB behavior).
 
 ```vim
-" opt-in example — add to vimrc after loading tabs.vim
+" opt-in example — must be set before the plugin loads (i.e. before plug#end())
 let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
 ```
 
