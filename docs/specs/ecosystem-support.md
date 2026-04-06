@@ -84,4 +84,4 @@ let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
 ## Related
 
 - [key-binding.md](key-binding.md) — full public function API and vimrc wiring reference
-- ADR-005 — decision record for this spec
+- [ADR-005](../adrs/005.tabs-vim.ecosystem-support.md) — decision record for this spec (revised 2026-04-06: wrapper functions removed)

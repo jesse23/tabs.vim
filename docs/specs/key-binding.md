@@ -1,6 +1,6 @@
 # SPEC: Key Binding
 
-**Last Updated:** 2026-04-04
+**Last Updated:** 2026-04-06
 
 ---
 
@@ -130,4 +130,4 @@ In normal mode, `<C-]>` is the native "jump to tag under cursor" (ctags / cscope
 | **No OOTB keybindings** | Plugin installs zero keymaps; mouse DnD infrastructure only | ADR-004 | ✅ |
 | **Public function API** | All operations promoted to `TabsVim_*` public functions | ADR-004 | ✅ |
 | **Example vimrc block** | Ready-made mapping block for users to copy into vimrc | — | ✅ |
-| **Ecosystem buffer close** | `g:tabs_vim_tabclose_types` wires `q` → `:tabclose` for specified buffer types | ADR-005 | ✅ |
+| **Ecosystem buffer close** | `g:tabs_vim_tabclose_types` wires `q` → `:tabclose` for specified buffer types | — | ✅ |
