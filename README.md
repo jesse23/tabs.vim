@@ -1,12 +1,10 @@
 # tabs.vim
 
-A lightweight Vim plugin that replaces the native tabline with a clean, mode-aware bar: numbered tabs on the left, a color-coded mode pill on the right. Exposes public functions for terminal toggling, window management, and ecosystem integrations — no keybindings installed out of the box.
+A lightweight Vim plugin that replaces the native tabline with a clean, mode-aware bar: numbered tabs on the left, a color-coded mode pill on the right. Exposes public functions for terminal toggling and window management — no keybindings installed out of the box.
 
 ## Requirements
 
 - Vim 8.2+ or Neovim 0.7+
-- Optional: [junegunn/fzf.vim](https://github.com/junegunn/fzf.vim) for file-picker integration
-- Optional: [vim-flog](https://github.com/rbong/vim-flog) for git log integration
 
 ## Installation
 
@@ -45,10 +43,12 @@ tnoremap          <C-]>      <C-\><C-n>   " exit terminal mode
 " ── File operations ───────────────────────────────────────────────────────────
 nnoremap <silent> gF         :tabedit <cfile><CR>
 nnoremap <silent> <leader>fy :let @+ = expand("%:p")<CR>
-nnoremap <silent> <leader>ft :call TabsVim_FzfOpenInTab()<CR>
 
-" ── Git log ───────────────────────────────────────────────────────────────────
-nnoremap <silent> <leader>gg :call TabsVim_FlogInTab()<CR>
+" ── Ecosystem integrations (direct calls — no plugin wrapper needed) ──────────
+" fzf.vim: open file picker with tabedit as the sink
+nnoremap <silent> <leader>ft :call fzf#vim#files('', fzf#vim#with_preview({'sink': 'tabedit'}), 0)<CR>
+" vim-flog: open full git log in a new tab
+nnoremap <silent> <leader>gg :Flogsplit -open-cmd=tabedit -all<CR>
 
 " ── Ecosystem buffer close (q → :tabclose) ───────────────────────────────────
 " Must be set before the plugin loads/is sourced (e.g. before plug#end() when using vim-plug).
@@ -66,8 +66,6 @@ let g:tabs_vim_tabclose_types = ['floggraph', 'git', 'diff']
 | `TabsVim_NewTabTerm()` | Open a new terminal in its own tab |
 | `TabsVim_CloseOrHide()` | Close window; if last window prompt to quit; if terminal, hide it |
 | `TabsVim_RenameBuffer()` | Prompt to rename the current buffer |
-| `TabsVim_FzfOpenInTab()` | Open fzf file picker with `tabedit` as the sink (requires fzf.vim) |
-| `TabsVim_FlogInTab()` | Open vim-flog git log in a new tab (requires vim-flog) |
 
 ## Configuration
 

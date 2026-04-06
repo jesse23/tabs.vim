@@ -97,7 +97,7 @@ This is why `tabs.vim` supporting terminal operations (opening terminal in new t
 | Goal | Why | Approach |
 |------|-----|----------|
 | **Fast Navigation** | Reduce cognitive load when switching files | `<Tab>` / `<S-Tab>` for next/prev; `<leader>[1-9]` for direct jump |
-| **Quick Creation** | Open files faster with consistent entry points | `<leader>ft` (fzf) → `tabedit`, `<leader>wt` for new empty tab |
+| **Quick Creation** | Open files faster with consistent entry points | `<leader>wt` for new empty tab; fzf/flog wiring documented as vimrc recipes |
 | **Visual Clarity** | Make tabs the center of workflow | Color scheme integration, tab status in statusline |
 | **Ecosystem Integration** | Work with existing plugins (fzf, git, file tree) | Respect plugin output, use standard Vim events |
 | **Cross-Platform** | Work on macOS, Linux, and Windows with Vim/Neovim | Pure VimScript, no dependencies on external tools |
@@ -123,7 +123,7 @@ tabs.vim/
 All tab operations are pure Vim commands; no plugin state is maintained. Tab state is delegated to Vim's native tab list. Terminal buffer state is tracked minimally via module-level variables (`s:term_bufnr`, `s:vterm_bufnr`).
 
 **2. Plugin Composition**  
-Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimplement file picking or git operations — it just routes output to tabs via `:tabedit`.
+Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimplement or wrap file picking / git operations — those one-liner calls belong in the user's vimrc. The plugin documents integration recipes but owns no third-party function calls.
 
 **3. Configuration Flexibility**  
 All keybindings are configurable. Users can disable features (e.g., if they don't use tabs) without source code changes.
