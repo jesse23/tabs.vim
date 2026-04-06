@@ -97,28 +97,6 @@ endfunction
 " ECOSYSTEM
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" fzf: open file picker with tabedit as the sink
-function! TabsVim_FzfOpenInTab() abort
-  if !exists('*fzf#vim#files') || !exists('*fzf#vim#with_preview')
-    echohl WarningMsg
-    echo 'tabs.vim: TabsVim_FzfOpenInTab requires fzf.vim (fzf#vim#files not available)'
-    echohl None
-    return
-  endif
-  call fzf#vim#files('', fzf#vim#with_preview({'sink': 'tabedit'}), 0)
-endfunction
-
-" vim-flog: open full-repo git log in a new tab
-function! TabsVim_FlogInTab() abort
-  if !exists(':Flogsplit')
-    echohl WarningMsg
-    echo 'tabs.vim: TabsVim_FlogInTab requires vim-flog (:Flogsplit not available)'
-    echohl None
-    return
-  endif
-  Flogsplit -open-cmd=tabedit -all
-endfunction
-
 " g:tabs_vim_tabclose_types: wire q → :tabclose for specified buffer types.
 " Must be set before the plugin loads. Supported tokens: 'floggraph', 'git',
 " 'diff', or any FileType name matching ^\h\w*$.

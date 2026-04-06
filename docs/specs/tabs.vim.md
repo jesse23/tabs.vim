@@ -1,7 +1,7 @@
 # tabs.vim
 
 **Version:** 0.1.0  
-**Last Updated:** 2026-04-04  
+**Last Updated:** 2026-04-06  
 **Status:** Active Development
 
 ---
@@ -97,7 +97,7 @@ This is why `tabs.vim` supporting terminal operations (opening terminal in new t
 | Goal | Why | Approach |
 |------|-----|----------|
 | **Fast Navigation** | Reduce cognitive load when switching files | `<Tab>` / `<S-Tab>` for next/prev; `<leader>[1-9]` for direct jump |
-| **Quick Creation** | Open files faster with consistent entry points | `<leader>ft` (fzf) → `tabedit`, `<leader>wt` for new empty tab |
+| **Quick Creation** | Open files faster with consistent entry points | `<leader>wt` for new empty tab; fzf/flog wiring documented as vimrc recipes |
 | **Visual Clarity** | Make tabs the center of workflow | Color scheme integration, tab status in statusline |
 | **Ecosystem Integration** | Work with existing plugins (fzf, git, file tree) | Respect plugin output, use standard Vim events |
 | **Cross-Platform** | Work on macOS, Linux, and Windows with Vim/Neovim | Pure VimScript, no dependencies on external tools |
@@ -123,7 +123,7 @@ tabs.vim/
 All tab operations are pure Vim commands; no plugin state is maintained. Tab state is delegated to Vim's native tab list. Terminal buffer state is tracked minimally via module-level variables (`s:term_bufnr`, `s:vterm_bufnr`).
 
 **2. Plugin Composition**  
-Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimplement file picking or git operations — it just routes output to tabs via `:tabedit`.
+Tabs plugin plays well with others (fzf, Fern, vim-fugitive). It doesn't reimplement or wrap file picking / git operations — those one-liner calls belong in the user's vimrc. The plugin documents integration recipes but owns no third-party function calls.
 
 **3. Configuration Flexibility**  
 All keybindings are configurable. Users can disable features (e.g., if they don't use tabs) without source code changes.
@@ -132,7 +132,7 @@ All keybindings are configurable. Users can disable features (e.g., if they don'
 Dracula color scheme is the built-in default; the tab bar can show a mode pill (Normal/Insert/Visual/Replace/Command/Terminal) and can style the selected tab by mode, depending on `g:tabs_vim_mode_style`. Users may override any or all mode colors via `g:tabs_vim_colors`.
 
 **5. Vimrc Integration Boundary**  
-The plugin owns all behavior it directly triggers. Integration with third-party plugins (vim-flog, vim-fugitive, diff buffers) — for example, binding `q` to `:tabclose` in their buffer types — is intentionally left to the user's vimrc. These bindings are tab-aware but depend on optional external plugins; pulling them into tabs.vim would introduce undeclared dependencies and couple the plugin to unrelated workflows.
+The plugin owns all behavior it directly triggers. Third-party function calls (e.g. `fzf#vim#files`, `Flogsplit`) are not wrapped — those one-liner mappings belong in the user's vimrc and are documented as recipes in `ecosystem-support.md`. The exception is `g:tabs_vim_tabclose_types`, which the plugin owns because it installs tab-scoped autocmd logic (`q` → `:tabclose`) that is boilerplate-identical across every ecosystem tool and carries no third-party function dependency.
 
 ### Color Configuration Contract
 
@@ -258,7 +258,7 @@ let g:tabs_vim_colors = {
 ## Related Specs
 
 - [key-binding.md](key-binding.md) — public `TabsVim_*` function API, OOTB behavior contract, and recommended vimrc wiring
-- [ecosystem-support.md](ecosystem-support.md) — tab-aware integrations for fzf, vim-flog, vim-fugitive, and vimdiff
+- [ecosystem-support.md](ecosystem-support.md) — vimrc recipes for fzf/flog and plugin-side `g:tabs_vim_tabclose_types`
 
 ---
 
@@ -270,3 +270,4 @@ let g:tabs_vim_colors = {
 | 2026-04-04 | Extend color config: plugin now owns TabLine/TabLineSel/TabLineFill via `tabline`, `tabline_sel`, `tabline_fill` keys |
 | 2026-04-04 | Add Vimrc Integration Boundary pattern; mark completed features; align Features table to template |
 | 2026-04-04 | Rename to `g:tabs_vim_mode_style` enum (`all` / `tabs` / `mode`) with `all` as default |
+| 2026-04-06 | Clarify Vimrc Integration Boundary: plugin owns `g:tabs_vim_tabclose_types` autocmd; third-party function calls are vimrc recipes |
